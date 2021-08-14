@@ -1,0 +1,1 @@
+Worker: pip3 install discord && pip3 install dnspython && pip3 install pymongo && pip3 install resource && pip3 install pytz && pip3 install requests && pip3 install google-cloud-storage && python3 main.py

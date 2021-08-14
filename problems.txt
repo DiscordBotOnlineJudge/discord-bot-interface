@@ -1,0 +1,4 @@
+Use -open [problemName] to view problem statements (ex. -open HelloWorld)
+Use -submit [problemName] [language] to submit a solution to a problem (ex. -submit aplusb java)
+
+Set your own problem on this judge using the "-add" command!

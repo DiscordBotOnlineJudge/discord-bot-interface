@@ -1,0 +1,18 @@
+-help                             to ask for help
+-problems                         to view all available problems
+-submit [problemName] [language]  to submit you solution to a problem (example: -submit HelloWorld python)
+-open   [problemName]             to read a problem statement (example: -open aplusb)
+-lang                             for a list of available languages
+-errors                           to see your submission runtime errors
+-status                           to see the statuses for the juding servers
+-add                              to add your own problem to the judge
+-profile or -profile [user]       to see the problems you or another user solved
+-upcoming or -up                  to see upcoming contests
+-join [contestCode]               to enter a contest
+-rem or -rem [user]               to see remaining time on a contest
+-vote                             to vote for and support the bot
+-invite                           to get a link that invites the bot to your own server
+-servers                          to see the servers the bot is in
+
+Important: All Java programs must have the public class named as "Main" since
+the judge runs Java programs in the file "Main.java"

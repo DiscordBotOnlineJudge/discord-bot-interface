@@ -1,0 +1,22 @@
+**Languages available:**
+```
+Python
+Java
+C
+C++
+Ruby
+Pascal
+Text
+Brainf
+```
+**Exact runtimes for languages:**
+```
+Python:   python 3.9.5
+Java:     Oracle Open JDK/JRE 1.8 (Java 8)
+C:        gcc (GCC) 7.3.1 20180712 (Red Hat 7.3.1-13)
+C++:      g++ (GCC) 7.3.1 20180712 (Red Hat 7.3.1-13) with language standard C++17
+Ruby:     ruby 2.0.0p648
+Pascal:   Free Pascal Compiler version 3.0.4+dfsg-22 [2019/01/24] for x86_64
+Text:     cat (GNU coreutils) 8.22
+Brainf:   Brainf interpreter written in ruby by Theodore Preduta
+```
