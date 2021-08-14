@@ -247,7 +247,7 @@ async def on_ready():
     stc = storage.Client()
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
-    cluster = MongoClient("mongodb+srv://onlineuser:$k25DsumFLfXEtF@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
+    cluster = MongoClient("mongodb+srv://onlineuser:$" + os.getenv("PASSWORD") + "@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
     db = cluster['database']
     global settings
     settings = db['settings']
@@ -729,4 +729,4 @@ async def on_message(message):
             await sendLiveScoreboards()
             await message.channel.send("Live scoreboard contests set to `" + str(arr[1:]) + "`")
 
-client.run("ODMxOTYzMTIyNDQ4MjAzNzc2.YHc4CQ.TMuRzPcnWoWfvS49SYC4Fm2ixdI")
+client.run(os.getenv("TOKEN"))
