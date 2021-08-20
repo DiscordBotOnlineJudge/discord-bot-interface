@@ -8,15 +8,17 @@ Ruby
 Pascal
 Text
 Brainf
+Perl
 ```
 **Exact runtimes for languages:**
 ```
-Python:   python 3.9.5
-Java:     Oracle Open JDK/JRE 1.8 (Java 8)
-C:        gcc (GCC) 7.3.1 20180712 (Red Hat 7.3.1-13)
-C++:      g++ (GCC) 7.3.1 20180712 (Red Hat 7.3.1-13) with language standard C++17
-Ruby:     ruby 2.0.0p648
+Python:   python 3.7.3
+Java:     Oracle Open JDK/JRE 11.0.12 (Java 11)
+C:        gcc (Debian 8.3.0-6) 8.3.0
+C++:      g++ (Debian 8.3.0-6) 8.3.0 with language standard C++17
+Ruby:     ruby 2.5.5p157 (2019-03-15 revision 67260) [x86_64-linux-gnu]
 Pascal:   Free Pascal Compiler version 3.0.4+dfsg-22 [2019/01/24] for x86_64
-Text:     cat (GNU coreutils) 8.22
+Text:     cat (GNU coreutils) 8.30
 Brainf:   Brainf interpreter written in ruby by Theodore Preduta
+Perl:     perl v5.28.1
 ```
