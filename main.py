@@ -171,7 +171,7 @@ def getScoreboard(contest):
         cur += 1
         if i == 0 or comp[i - 1][1] != comp[i][1] or comp[i - 1][2] != comp[i][2]:
             idx = cur
-        msg += str(idx) + ". " + comp[i][0] + "\n"
+        msg += str(idx) + ") " + comp[i][0] + "\n"
 
     if len(comp) <= 0:
         msg += "---No participants are in this contest yet---\n"
@@ -427,18 +427,21 @@ async def on_message(message):
                             batmsg += "      Case #" + str(x) + ": " + (" " if (extra and x < 10) else "") + "--\n"
                         sk = True
 
-                    if sk:
-                        if batches[b] > 1:
-                            await curmsg.edit(content = ("```diff\n" + msg + "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
-                        else:
-                            await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                    if sk and batches[b] > 1:
+                        #if batches[b] > 1:
+                        await curmsg.edit(content = ("```diff\n" + msg + "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
+                        #else:
+                            #await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
                         break
                     else:
                         if individual or (cnt + 1) % interval == 0: 
                             if batches[b] > 1:
                                 await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
                             else:
-                                await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                if sk:
+                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                else:
+                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
 
                         cnt += 1
             else:
@@ -456,8 +459,14 @@ async def on_message(message):
 
                     if not sk and verd.split()[0] == "Compilation":
                         comp = open("Judge" + str(avail) + "/errors.txt", "r")
-                        msg += "- " + verd + "\n" + comp.read(1000) + "\n"
+                        pe = open("Judge" + str(avail) + "/stdout.txt", "r")
+                        msg += "- " + verd + "\n" + comp.read(1000)
+                        psrc = pe.read(1000)
+                        if len(psrc) > 0:
+                            msg += "\n" + psrc
+                        msg += "\n"
                         comp.close()
+                        pe.close()
                         ce = True
                         break
 
@@ -720,11 +729,16 @@ async def on_message(message):
 
             for i in range(1, len(arr)):
                 await live_scoreboard(arr[i])
+                
             await updateStatus()
             await message.channel.send("Refreshed live scoreboard and live judge status")
         elif str(message.content).startswith("-set"):
             arr = str(message.content).split()
             
+            if settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None:
+                await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
+                return
+
             settings.update_one({"type":"livecontests"}, {"$set":{"arr":arr[1:]}})
             await sendLiveScoreboards()
             await message.channel.send("Live scoreboard contests set to `" + str(arr[1:]) + "`")
