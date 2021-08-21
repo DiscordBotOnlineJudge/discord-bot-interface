@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "onlinejudgebot"
+name = "discord-bot-online-judge"
 version = "0.1.0"
 description = ""
 authors = ["Jimmy Liu <jimmyjcl753@gmail.com>"]

@@ -554,12 +554,12 @@ async def on_message(message):
 
             found = settings.find_one({"type":"problem", "name":problem})
             if found is None or (perms(found, str(message.author))):
-                await message.channel.send("Judging Error: Problem not found. Type `-problems` for a list of problems.")
+                await message.channel.send("Judging Error: Problem not found. Refer to `-problems` or the contest instructions for problem codes.")
                 return
 
             lang = settings.find_one({"type":"lang", "name":language})
             if lang is None:
-                await message.channel.send("Judging Error: Language not Supported\nType `-langs` for a list of supported languages.")
+                await message.channel.send("Judging Error: Language not Supported. Type `-langs` for a list of supported languages.")
                 return
 
             settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
