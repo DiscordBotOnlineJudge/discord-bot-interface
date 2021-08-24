@@ -90,7 +90,7 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     anyErrors = open("errors.txt", "w")
     
     proc = None 
-    if cmdrun.startswith("java"):
+    if cmdrun.startswith("java") or cmdrun.startswith("node"):
         proc = subprocess.Popen(cmdrun, stdin=myInput, stdout=myOutput, stderr=anyErrors, shell=True)
     else:
         proc = subprocess.Popen(cmdrun, stdin=myInput, stdout=myOutput, stderr=anyErrors, preexec_fn = limit_virtual_memory, shell=True)
