@@ -9,6 +9,8 @@ Pascal
 Text
 Brainf
 Perl
+Nodejs
+Coffee (Coffeescript)
 ```
 **Exact runtimes for languages:**
 ```
@@ -21,4 +23,6 @@ Pascal:   Free Pascal Compiler version 3.0.4+dfsg-22 [2019/01/24] for x86_64
 Text:     cat (GNU coreutils) 8.30
 Brainf:   Brainf interpreter written in ruby by Theodore Preduta
 Perl:     perl v5.28.1
+Nodejs    Node v10.24.0
+Coffee:   CoffeeScript version 2.5.1
 ```
