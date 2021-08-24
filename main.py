@@ -36,7 +36,7 @@ def clearSources(judgeNum):
     c = open("Judge" + str(judgeNum) + "/SourceCode.c", "w")
     c.close()
 
-    clearFile("Judge" + str(judgeNum) + "/data.out")
+    #clearFile("Judge" + str(judgeNum) + "/data.out")
 
 def decode(cde):
     if cde == 0:
