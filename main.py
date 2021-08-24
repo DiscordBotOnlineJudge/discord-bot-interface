@@ -565,6 +565,7 @@ async def on_message(message):
             settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
             await message.channel.send("Ok " + str(message.author) + ", now send your source code either as a message or attachment. If you would like, surround your code with backticks (`).")
         elif str(message.content).split()[0].startswith("-lang"):
+            judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
             msg = f.read()
             rtm = ""
