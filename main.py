@@ -441,9 +441,9 @@ async def on_message(message):
                                 await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
                             else:
                                 if sk:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
                                 else:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
 
                         cnt += 1
             else:
@@ -493,12 +493,12 @@ async def on_message(message):
             if not sk:
                 finalscore += points[b]
                 if batches[b] == 1:
-                    msg += "+ Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n"
+                    msg += "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n"
                 else:
                     msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n"
             else:
                 if batches[b] == 1:
-                    msg += "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n"
+                    msg += "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n"
                 else:
                     msg += "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n"
             b += 1
