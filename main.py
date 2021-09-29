@@ -352,6 +352,8 @@ async def on_message(message):
             if x >= 10:
                 extra = True
                 break
+        if batches >= 10:
+            extra = True
 
         points = list(map(int, problemData.readline().split()))
 
@@ -439,7 +441,7 @@ async def on_message(message):
                                 await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
                             else:
                                 if sk:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
                                 else:
                                     await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
 
