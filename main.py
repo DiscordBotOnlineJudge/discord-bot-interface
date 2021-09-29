@@ -352,7 +352,7 @@ async def on_message(message):
             if x >= 10:
                 extra = True
                 break
-        if batches >= 10:
+        if len(batches) >= 10:
             extra = True
 
         points = list(map(int, problemData.readline().split()))
