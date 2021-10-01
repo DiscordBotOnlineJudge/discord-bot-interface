@@ -599,8 +599,8 @@ async def on_message(message):
                 ps = open("ProblemStatement.txt", "r")
                 st = ps.read()
                 await message.channel.send(st)
-            except:
-                await message.channel.send("Sorry, this problem does not yet have a problem statement")
+            except Exception as e:
+                await message.channel.send("An error occured while retrieving the problem statement:\n```" + str(e) + "\n```")
         elif str(message.content).split()[0] == "-reset":
             if str(message.author) != "jiminycricket#2701":
                 await message.channel.send("Sorry, you do not have authorized access to this command.")
