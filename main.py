@@ -285,241 +285,244 @@ async def on_message(message):
                 break
 
     if not str(message.content).startswith("-") and (not req is None):
-        ct = contests.current_time()
+        try:
+            ct = contests.current_time()
 
-        username = req['user']
-        problem = req['problem']
-        lang = req['lang']
+            username = req['user']
+            problem = req['problem']
+            lang = req['lang']
 
-        settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
+            settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
 
-        problm = settings.find_one({"type":"problem", "name":problem})
-        
-        filename = settings.find_one({"type":"lang", "name":lang})['filename']
-        judges = settings.find_one({"type":"judge", "status":0})
-
-        if judges is None or judges['num'] == 4:
-            await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
-            return
-
-        if not running:
-            running = True
-
-        settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
-        settings.delete_one({"_id":req['_id']})
-
-        await updateStatus()
-
-        avail = judges['num']
-
-        cleaned = ""
-        warn = False
-        if message.attachments:
-            url = message.attachments[0]
-            r = requests.get(url, allow_redirects=True)
-
-            wc = open("Judge" + str(avail) + "/" + filename, "wb")
-            wc.write(r.content)
-            wc.flush()
-            wc.close()
+            problm = settings.find_one({"type":"problem", "name":problem})
             
-            dbg = open("Judge" + str(avail) + "/" + filename, "r")
-            fromClean = clean(dbg.read())
-            cleaned = fromClean[0]
-            warn = fromClean[1]
-        else:
-            # Clean up code from all backticks
-            fromClean = clean(str(message.content))
-            cleaned = fromClean[0]
-            warn = fromClean[1]
-            
-        writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
-        if len(cleaned) <= 0:
-            await message.channel.send("Judging error: Source code is empty")
+            filename = settings.find_one({"type":"lang", "name":lang})['filename']
+            judges = settings.find_one({"type":"judge", "status":0})
+
+            if judges is None or judges['num'] == 4:
+                await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
+                return
+
+            if not running:
+                running = True
+
+            settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
+            settings.delete_one({"_id":req['_id']})
+
+            await updateStatus()
+
+            avail = judges['num']
+
+            cleaned = ""
+            warn = False
+            if message.attachments:
+                url = message.attachments[0]
+                r = requests.get(url, allow_redirects=True)
+
+                wc = open("Judge" + str(avail) + "/" + filename, "wb")
+                wc.write(r.content)
+                wc.flush()
+                wc.close()
+                
+                dbg = open("Judge" + str(avail) + "/" + filename, "r")
+                fromClean = clean(dbg.read())
+                cleaned = fromClean[0]
+                warn = fromClean[1]
+            else:
+                # Clean up code from all backticks
+                fromClean = clean(str(message.content))
+                cleaned = fromClean[0]
+                warn = fromClean[1]
+                
+            writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
+            if len(cleaned) <= 0:
+                await message.channel.send("Judging error: Source code is empty")
+                settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
+                await updateStatus()
+                return
+
+            settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
+            await message.channel.send("Now judging your program. Please wait a few seconds.")
+
+            judging.get_file(storage_client, "TestData/" + str(problem) + "/cases.txt", "Judge" + str(avail) + "/cases.txt")
+            problemData = open("Judge" + str(avail) + "/cases.txt", "r")
+
+            batches = list(map(int, problemData.readline().split()))
+            extra = False
+            for x in batches:
+                if x >= 10:
+                    extra = True
+                    break
+            if len(batches) >= 10:
+                extra = True
+
+            points = list(map(int, problemData.readline().split()))
+
+            timelims = list(map(float, problemData.readline().split()))
+            timelim = None
+
+            id = settings.find_one({"type":"lang", "name":lang})['id']
+
+            if len(timelims) == 1:
+                timelim = timelims[0]
+            else:
+                timelim = timelims[id]
+
+            inds = problemData.readline()
+            individual = False
+            if len(inds) > 0:
+                arr = inds.split()
+                individual = arr[id].strip() == 'T'
+
+            problemData.close()
+
+            msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = timelim)) + "\nRunning on Judging Server #" + str(avail) + "\n\n"
+            if warn:
+                msg += "- Compilation warning: Illegal/Forbidden keywords found in source code!\n\n"
+            curmsg = await message.channel.send("```" + msg + "(Status: COMPILING)```")
+
+            language = settings.find_one({"type":"lang", "name":lang})
+            compl = language['compl'].format(x = avail)
+            cmdrun = language['run'].format(x = avail)
+
+            finalscore = 0
+            ce = False
+
+            b = 0
+            tot = sum(batches)
+            interval = int(math.ceil(tot / 4))
+            cnt = 0
+
+            if tot > 20:
+                interval //= 2
+
+            while b < len(batches) and running:
+                sk = False
+                batmsg = ""
+                verd = ""
+
+                if tot <= 20:
+                    for i in range(1, batches[b] + 1):
+                        verd = ""
+                        if not sk:
+                            verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
+                            clearFile("Judge" + str(avail) + "/data.out")
+
+                        if not sk and verd.split()[0] == "Compilation":
+                            comp = open("Judge" + str(avail) + "/errors.txt", "r")
+                            pe = open("Judge" + str(avail) + "/stdout.txt", "r")
+                            msg += "- " + verd + "\n" + comp.read(1000)
+                            psrc = pe.read(1000)
+                            if len(psrc) > 0:
+                                msg += "\n" + psrc
+                            msg += "\n"
+                            comp.close()
+                            pe.close()
+                            ce = True
+                            break
+
+                        if not sk and verd.split()[0] == "Judging":
+                            msg += verd + "\n"
+
+                        batmsg += ("+" if verd.split()[0] == "Accepted" else "-") + "     Case #" + str(i) + ": " + (" " if (extra and i < 10) else "") + verd + "\n"
+                        if verd.split()[0] != "Accepted":
+                            for x in range(i + 1, batches[b] + 1):
+                                batmsg += "      Case #" + str(x) + ": " + (" " if (extra and x < 10) else "") + "--\n"
+                            sk = True
+
+                        if sk and batches[b] > 1:
+                            #if batches[b] > 1:
+                            await curmsg.edit(content = ("```diff\n" + msg + "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
+                            #else:
+                                #await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                            break
+                        else:
+                            if individual or (cnt + 1) % interval == 0: 
+                                if batches[b] > 1:
+                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
+                                else:
+                                    if sk:
+                                        await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+                                    else:
+                                        await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
+
+                            cnt += 1
+                else:
+                    tt = 0
+                    for i in range(1, batches[b] + 1):
+                        if individual or cnt % interval == 0 or i == 1:
+                            await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n      Pending judgement on case " + str(i) + "\n\n(Status: RUNNING)```"))
+
+                        verd = ""
+                        if not sk:
+                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)
+                            verd = vv[0]
+                            tt += vv[1]
+                            clearFile("Judge" + str(avail) + "/data.out")
+
+                        if not sk and verd.split()[0] == "Compilation":
+                            comp = open("Judge" + str(avail) + "/errors.txt", "r")
+                            pe = open("Judge" + str(avail) + "/stdout.txt", "r")
+                            msg += "- " + verd + "\n" + comp.read(1000)
+                            psrc = pe.read(1000)
+                            if len(psrc) > 0:
+                                msg += "\n" + psrc
+                            msg += "\n"
+                            comp.close()
+                            pe.close()
+                            ce = True
+                            break
+
+                        if not verd.startswith("Accepted"):
+                            await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n(Status: RUNNING)```"))
+                            msg += "  Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n"
+                            sk = True
+                            cnt += 1
+                            break
+
+                        cnt += 1
+                    
+                    if not sk and not ce:
+                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + "+     All cases passed (" + str(batches[b]) + " cases in " + "{x:.3f}".format(x = tt) + " seconds)" + "\n\n"
+                        finalscore += points[b]
+
+                if ce:
+                    break
+                if tot > 20:
+                    b += 1
+                    continue
+                if not sk:
+                    finalscore += points[b]
+                    if batches[b] == 1:
+                        msg += "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n"
+                    else:
+                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n"
+                else:
+                    if batches[b] == 1:
+                        msg += "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n"
+                    else:
+                        msg += "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n"
+                b += 1
+                
+            if batches[len(batches) - 1] == 1:
+                msg += "\n"
+            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
+            await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
+            clearSources(avail)
+
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
             await updateStatus()
-            return
 
-        settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
-        await message.channel.send("Now judging your program. Please wait a few seconds.")
+            if not running:
+                await message.channel.send("Submission terminated.")
 
-        judging.get_file(storage_client, "TestData/" + str(problem) + "/cases.txt", "Judge" + str(avail) + "/cases.txt")
-        problemData = open("Judge" + str(avail) + "/cases.txt", "r")
-
-        batches = list(map(int, problemData.readline().split()))
-        extra = False
-        for x in batches:
-            if x >= 10:
-                extra = True
-                break
-        if len(batches) >= 10:
-            extra = True
-
-        points = list(map(int, problemData.readline().split()))
-
-        timelims = list(map(float, problemData.readline().split()))
-        timelim = None
-
-        id = settings.find_one({"type":"lang", "name":lang})['id']
-
-        if len(timelims) == 1:
-            timelim = timelims[0]
-        else:
-            timelim = timelims[id]
-
-        inds = problemData.readline()
-        individual = False
-        if len(inds) > 0:
-            arr = inds.split()
-            individual = arr[id].strip() == 'T'
-
-        problemData.close()
-
-        msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = timelim)) + "\nRunning on Judging Server #" + str(avail) + "\n\n"
-        if warn:
-            msg += "- Compilation warning: Illegal/Forbidden keywords found in source code!\n\n"
-        curmsg = await message.channel.send("```" + msg + "(Status: COMPILING)```")
-
-        language = settings.find_one({"type":"lang", "name":lang})
-        compl = language['compl'].format(x = avail)
-        cmdrun = language['run'].format(x = avail)
-
-        finalscore = 0
-        ce = False
-
-        b = 0
-        tot = sum(batches)
-        interval = int(math.ceil(tot / 4))
-        cnt = 0
-
-        if tot > 20:
-            interval //= 2
-
-        while b < len(batches) and running:
-            sk = False
-            batmsg = ""
-            verd = ""
-
-            if tot <= 20:
-                for i in range(1, batches[b] + 1):
-                    verd = ""
-                    if not sk:
-                        verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
-                        clearFile("Judge" + str(avail) + "/data.out")
-
-                    if not sk and verd.split()[0] == "Compilation":
-                        comp = open("Judge" + str(avail) + "/errors.txt", "r")
-                        pe = open("Judge" + str(avail) + "/stdout.txt", "r")
-                        msg += "- " + verd + "\n" + comp.read(1000)
-                        psrc = pe.read(1000)
-                        if len(psrc) > 0:
-                            msg += "\n" + psrc
-                        msg += "\n"
-                        comp.close()
-                        pe.close()
-                        ce = True
-                        break
-
-                    if not sk and verd.split()[0] == "Judging":
-                        msg += verd + "\n"
-
-                    batmsg += ("+" if verd.split()[0] == "Accepted" else "-") + "     Case #" + str(i) + ": " + (" " if (extra and i < 10) else "") + verd + "\n"
-                    if verd.split()[0] != "Accepted":
-                        for x in range(i + 1, batches[b] + 1):
-                            batmsg += "      Case #" + str(x) + ": " + (" " if (extra and x < 10) else "") + "--\n"
-                        sk = True
-
-                    if sk and batches[b] > 1:
-                        #if batches[b] > 1:
-                        await curmsg.edit(content = ("```diff\n" + msg + "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
-                        #else:
-                            #await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-                        break
-                    else:
-                        if individual or (cnt + 1) % interval == 0: 
-                            if batches[b] > 1:
-                                await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
-                            else:
-                                if sk:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-                                else:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-
-                        cnt += 1
-            else:
-                tt = 0
-                for i in range(1, batches[b] + 1):
-                    if individual or cnt % interval == 0 or i == 1:
-                        await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n      Pending judgement on case " + str(i) + "\n\n(Status: RUNNING)```"))
-
-                    verd = ""
-                    if not sk:
-                        vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)
-                        verd = vv[0]
-                        tt += vv[1]
-                        clearFile("Judge" + str(avail) + "/data.out")
-
-                    if not sk and verd.split()[0] == "Compilation":
-                        comp = open("Judge" + str(avail) + "/errors.txt", "r")
-                        pe = open("Judge" + str(avail) + "/stdout.txt", "r")
-                        msg += "- " + verd + "\n" + comp.read(1000)
-                        psrc = pe.read(1000)
-                        if len(psrc) > 0:
-                            msg += "\n" + psrc
-                        msg += "\n"
-                        comp.close()
-                        pe.close()
-                        ce = True
-                        break
-
-                    if not verd.startswith("Accepted"):
-                        await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n(Status: RUNNING)```"))
-                        msg += "  Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n"
-                        sk = True
-                        cnt += 1
-                        break
-
-                    cnt += 1
-                
-                if not sk and not ce:
-                    msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + "+     All cases passed (" + str(batches[b]) + " cases in " + "{x:.3f}".format(x = tt) + " seconds)" + "\n\n"
-                    finalscore += points[b]
-
-            if ce:
-                break
-            if tot > 20:
-                b += 1
-                continue
-            if not sk:
-                finalscore += points[b]
-                if batches[b] == 1:
-                    msg += "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n"
-                else:
-                    msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n"
-            else:
-                if batches[b] == 1:
-                    msg += "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n"
-                else:
-                    msg += "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n"
-            b += 1
+            if finalscore == 100:
+                addToProfile(str(message.author), problem)
             
-        if batches[len(batches) - 1] == 1:
-            msg += "\n"
-        msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
-        await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
-        clearSources(avail)
-
-        settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
-        await updateStatus()
-
-        if not running:
-            await message.channel.send("Submission terminated.")
-
-        if finalscore == 100:
-            addToProfile(str(message.author), problem)
-        
-        if len(problm['contest']) > 0 and not ce:
-            await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
+            if len(problm['contest']) > 0 and not ce:
+                await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
+        except Exception as e:
+            await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
 
     else:
         if len(str(message.content)) <= 0:
