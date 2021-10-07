@@ -125,5 +125,6 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             return ("Accepted [" + taken + " seconds]", ft)
         else:
             return ("Wrong Answer [" + taken + " seconds]", ft)
-    except:
-        return ("Output Limit Exceeded [" + taken + " seconds]", ft)
+    except Exception as e:
+        print("Fatal error during grading:\n", str(e))
+        return ("Output Limit Exceeded/Internal Error [" + taken + " seconds]", ft)
