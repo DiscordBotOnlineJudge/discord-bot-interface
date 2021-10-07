@@ -27,15 +27,8 @@ def clearFile(filename):
     f.close()
 
 def clearSources(judgeNum):
-    j = open("Judge" + str(judgeNum) + "/Main.java", "w")
-    j.close()
-    p = open("Judge" + str(judgeNum) + "/SourceCode.py", "w")
-    p.close()
-    cpp = open("Judge" + str(judgeNum) + "/SourceCode.cpp", "w")
-    cpp.close()
-    c = open("Judge" + str(judgeNum) + "/SourceCode.c", "w")
-    c.close()
-
+    clearFile("Judge" + str(judgeNum) + "/data.out")
+    clearFile("Judge" + str(judgeNum) + "/data.in")
     #clearFile("Judge" + str(judgeNum) + "/data.out")
 
 def decode(cde):
@@ -523,6 +516,7 @@ async def on_message(message):
                 await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
+        clearSources(avail)
 
     else:
         if len(str(message.content)) <= 0:
