@@ -24,13 +24,13 @@ def writeCode(source, filename):
         
 def clearFile(filename):
     f = open(filename, "w")
+    os.remove(filename)
     f.close()
 
 def clearSources(judgeNum):
     clearFile("Judge" + str(judgeNum) + "/data.out")
     clearFile("Judge" + str(judgeNum) + "/data.in")
     clearFile("Judge" + str(judgeNum) + "/expected.out")
-    #clearFile("Judge" + str(judgeNum) + "/data.out")
 
 def decode(cde):
     if cde == 0:
