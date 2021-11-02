@@ -580,7 +580,8 @@ async def on_message(message):
                 rtm += x['name'] + " compiling: " + ((x['compl'].format(x = 0)) if len(x['compl']) > 0 else "not a compiled language") + "\n"
                 rtm += x['name'] + " execution: " + x['run'].format(x = 0) + "\n"
 
-            await message.channel.send(msg + "\n**Exact executions for languages:**\n```" + rtm + "```")
+            await message.channel.send(msg)
+            await message.channel.send("**Exact executions for languages:**\n```" + rtm + "```")
         elif str(message.content).startswith("-error"):
             f = open("errors.txt", "r")
             await message.channel.send("```\n" + f.read(5000) + "\n```")
