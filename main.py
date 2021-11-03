@@ -399,7 +399,7 @@ async def on_message(message):
                     for i in range(1, batches[b] + 1):
                         verd = ""
                         if not sk:
-                            verd = judging.judge(message, problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
+                            verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
                             clearFile("Judge" + str(avail) + "/data.out")
 
                         if not sk and verd.split()[0] == "Compilation":
