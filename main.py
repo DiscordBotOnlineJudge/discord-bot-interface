@@ -23,9 +23,7 @@ def writeCode(source, filename):
     f.close()
         
 def clearFile(filename):
-    f = open(filename, "w")
     os.remove(filename)
-    f.close()
 
 def clearSources(judgeNum):
     clearFile("Judge" + str(judgeNum) + "/data.out")
