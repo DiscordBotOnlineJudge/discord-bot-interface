@@ -752,9 +752,12 @@ async def on_message(message):
             tm = float(str(message.content).split()[1])
             console = subprocess.Popen(str(message.content)[(str(message.content).find("$")+1):], stdout=output, preexec_fn = judging.limit_virtual_memory, shell=True)
             await message.channel.send("Console started. Running command `" + str(message.content)[(str(message.content).find("$")+1):] + "` for " + str(tm) + " second(s).")
-            console.wait(timeout = tm)
+            
+            try:
+                console.wait(timeout = tm)
+            except subprocess.TimeoutExpired:
+                console.terminate()
 
-            console.terminate()
             output.flush()
             output.close()
 
