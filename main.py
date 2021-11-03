@@ -761,6 +761,9 @@ async def on_message(message):
             output.flush()
             output.close()
 
-            await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read() + "\n```")
+            try:
+                await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read() + "\n```")
+            except discord.errors.HTTPException:
+                await message.channel.send("Error: console output too long")
 
 client.run(os.getenv("TOKEN"))
