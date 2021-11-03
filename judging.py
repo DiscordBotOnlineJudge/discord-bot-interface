@@ -68,7 +68,7 @@ def write_file(storage_client, problem, bat, case, ext, save):
     blob = storage_client.blob("TestData/" + problem + "/data" + str(bat) + "." + str(case) + "." + ext)
     blob.download_to_filename(save)
 
-async def judge(msg, problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
+def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     if bat <= 1 and case <= 1 and len(compl) > 0:
         anyErrors = open("Judge" + str(judgeNum) + "/errors.txt", "w")
         stdout = open("Judge" + str(judgeNum) + "/stdout.txt", "w")
@@ -127,5 +127,4 @@ async def judge(msg, problem, bat, case, compl, cmdrun, judgeNum, timelim, usern
             return ("Wrong Answer [" + taken + " seconds]", ft)
     except Exception as e:
         print("Fatal error during grading:\n", str(e))
-        await msg.channel.send("Fatal error occurred during grading:\n```" + str(e) + "\n```")
-        return ("Internal Error [" + taken + " seconds]", ft)
+        return ("Output Limit Exceeded/Internal Error [" + taken + " seconds]", ft)
