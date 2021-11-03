@@ -749,9 +749,9 @@ async def on_message(message):
                 await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
                 return
             output = open("console.out", "w")
-            tm = str(message.content).split()[1]
+            tm = float(str(message.content).split()[1])
             console = subprocess.Popen(str(message.content)[(str(message.content).find("$")+1):], stdout=output, preexec_fn = judging.limit_virtual_memory, shell=True)
-            await message.channel.send("Console started. Running command \"" + str(message.content)[9:] + "\" for " + tm + " second(s).")
+            await message.channel.send("Console started. Running command `" + str(message.content)[(str(message.content).find("$")+1):] + "` for " + str(tm) + " second(s).")
             console.wait(timeout = tm)
 
             console.terminate()
