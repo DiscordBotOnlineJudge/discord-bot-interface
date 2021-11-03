@@ -744,5 +744,20 @@ async def on_message(message):
             settings.update_one({"type":"livecontests"}, {"$set":{"arr":arr[1:]}})
             await sendLiveScoreboards()
             await message.channel.send("Live scoreboard contests set to `" + str(arr[1:]) + "`")
+        elif str(message.content).startswith("-console"):
+            if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
+                await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
+                return
+            output = open("console.out", "w")
+            tm = str(message.content).split()[1]
+            console = subprocess.Popen(str(message.content)[(str(message.content).find("$")+1):], stdout=output, preexec_fn = judging.limit_virtual_memory, shell=True)
+            await message.channel.send("Console started. Running command \"" + str(message.content)[9:] + "\" for " + tm + " second(s).")
+            console.wait(timeout = tm)
+
+            console.terminate()
+            output.flush()
+            output.close()
+
+            await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read() + "\n```")
 
 client.run(os.getenv("TOKEN"))
