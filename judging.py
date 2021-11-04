@@ -23,6 +23,13 @@ def cleanChecker(fn, jn):
     w.flush()
     w.close()
 
+def cleanNullChars(output):
+    res = ""
+    for x in output:
+        if x != 0:
+            res += chr(x)
+    return res
+
 def checkEqual(problem, bat, case, judgeNum, storage_client):
     try:
         get_file(storage_client, "TestData/" + problem + "/checker.py", "Judge" + str(judgeNum) + "/checker.py")
@@ -58,15 +65,7 @@ def checkEqual(problem, bat, case, judgeNum, storage_client):
         cor.flush()
         cor.close()
 
-        with open("output1.txt", "w") as fo:
-            fo.write(mine.strip())
-            fo.flush()
-            fo.close()
-        with open("output2.txt", "w") as fo:
-            fo.write(expect.strip())
-            fo.flush()
-            fo.close()
-        return expect.strip() == mine.strip()
+        return cleanNullChars(expect).strip() == cleanNullChars(mine).strip()
 
 def get_file(storage_client, blobname, save):
     blob = storage_client.blob(blobname)
