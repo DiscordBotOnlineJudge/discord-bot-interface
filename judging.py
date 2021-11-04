@@ -74,11 +74,14 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
         stdout = open("Judge" + str(judgeNum) + "/stdout.txt", "w")
         comp = subprocess.Popen(compl, stdout=stdout, stderr=anyErrors, shell=True)
 
-        comp.wait()
-        anyErrors.flush()
-        anyErrors.close()
-        stdout.flush()
-        stdout.close()
+        try:
+            comp.wait(timeout = 5)
+            anyErrors.flush()
+            anyErrors.close()
+            stdout.flush()
+            stdout.close()
+        except subprocess.TimeoutExpired:
+            return ("Compilation Error: Request timed out", 0)
 
         if not comp.poll() == 0:
             return ("Compilation Error", 0)
