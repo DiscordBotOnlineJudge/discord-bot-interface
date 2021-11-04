@@ -23,9 +23,7 @@ def writeCode(source, filename):
     f.close()
         
 def clearFile(filename):
-    f = open(filename, "w")
     os.remove(filename)
-    f.close()
 
 def clearSources(judgeNum):
     #clearFile("Judge" + str(judgeNum) + "/data.out")
@@ -400,7 +398,6 @@ async def on_message(message):
                         verd = ""
                         if not sk:
                             verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
-                            clearFile("Judge" + str(avail) + "/data.out")
 
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
@@ -452,7 +449,6 @@ async def on_message(message):
                             vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)
                             verd = vv[0]
                             tt += vv[1]
-                            clearFile("Judge" + str(avail) + "/data.out")
 
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
