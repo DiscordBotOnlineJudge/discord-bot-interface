@@ -26,7 +26,7 @@ def cleanChecker(fn, jn):
 def cleanNullChars(output):
     res = ""
     for x in output:
-        if x != 0:
+        if ord(x) != 0:
             res += x
     return res
 
