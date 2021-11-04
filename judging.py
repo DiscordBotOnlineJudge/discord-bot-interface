@@ -27,7 +27,7 @@ def cleanNullChars(output):
     res = ""
     for x in output:
         if x != 0:
-            res += chr(x)
+            res += x
     return res
 
 def checkEqual(problem, bat, case, judgeNum, storage_client):
