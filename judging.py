@@ -60,8 +60,12 @@ def checkEqual(problem, bat, case, judgeNum, storage_client):
 
         with open("output1.txt", "w") as fo:
             fo.write(mine.strip())
+            fo.flush()
+            fo.close()
         with open("output2.txt", "w") as fo:
             fo.write(expect.strip())
+            fo.flush()
+            fo.close()
         return expect.strip() == mine.strip()
 
 def get_file(storage_client, blobname, save):
