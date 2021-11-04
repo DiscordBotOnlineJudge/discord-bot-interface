@@ -1,4 +1,4 @@
 module.exports.settings = {
-    allowedModules: [],
+    allowedModules: ['buffer', 'readline', 'stream', 'string_decoder', 'util', 'console', 'tty'],
     maxFileSizeKb: 50
 }
