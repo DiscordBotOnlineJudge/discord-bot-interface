@@ -27,7 +27,6 @@ def clearFile(filename):
 
 def clearSources(judgeNum):
     #clearFile("Judge" + str(judgeNum) + "/data.out")
-    clearFile("Judge" + str(judgeNum) + "/data.in")
     clearFile("Judge" + str(judgeNum) + "/expected.out")
 
 def decode(cde):
