@@ -59,6 +59,7 @@ def checkEqual(problem, bat, case, judgeNum, storage_client):
         cor.close()
 
         print(expect.strip() + "\n-------------\n" + mine.strip())
+        print(expect.strip() == mine.strip())
         return expect.strip() == mine.strip()
 
 def get_file(storage_client, blobname, save):
