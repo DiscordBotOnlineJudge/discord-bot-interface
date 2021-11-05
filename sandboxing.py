@@ -6,6 +6,8 @@ from RestrictedPython import compile_restricted
 from RestrictedPython.Guards import safe_builtins
 restricted_globals = dict(__builtins__=safe_builtins)
 restricted_globals["_print_"] = PrintCollector
+
+print(restricted_globals)
 _print_ = PrintCollector
 _getattr_ = getattr
 
