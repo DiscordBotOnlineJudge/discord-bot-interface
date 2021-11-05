@@ -12,4 +12,4 @@ _getattr_ = getattr
 src = open(sys.argv[1]).read()
 
 code = compile_restricted(src, '<string>', 'exec')
-exec(code)
+exec(code, restricted_globals)
