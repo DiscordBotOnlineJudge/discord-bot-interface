@@ -541,20 +541,7 @@ async def on_message(message):
             judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
             msg = f.read()
-            rtm = ""
-
-            g = settings.find({"type":"lang"})
-            res = []
-            for x in g:
-                res.append(x)
-            for i in range(len(res)):
-                x = res[i]
-                # msg += x['name'] + (", " if i < len(res) - 1 else "")
-                rtm += x['name'] + " compiling: " + ((x['compl'].format(x = 0)) if len(x['compl']) > 0 else "not a compiled language") + "\n"
-                rtm += x['name'] + " execution: " + x['run'].format(x = 0) + "\n"
-
-            await message.channel.send(msg)
-            await message.channel.send("**Exact executions for languages:**\n```" + rtm + "```")
+            await message.channel.send(msg + "\nTo see exact executions, visit https://dboj-problem-adding-web-app.jimmyliu3.repl.co/")
         elif str(message.content).startswith("-error"):
             f = open("errors.txt", "r")
             await message.channel.send("```\n" + f.read(5000) + "\n```")
