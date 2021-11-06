@@ -26,7 +26,7 @@ def clearFile(filename):
     os.remove(filename)
 
 def clearSources(judgeNum):
-    clearFile("Judge" + str(judgeNum) + "/data.out")
+    clearFile("Judge" + str(judgeNum) + "/data.in")
 
 def decode(cde):
     if cde == 0:
