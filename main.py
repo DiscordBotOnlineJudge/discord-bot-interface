@@ -26,8 +26,7 @@ def clearFile(filename):
     os.remove(filename)
 
 def clearSources(judgeNum):
-    #clearFile("Judge" + str(judgeNum) + "/data.out")
-    1
+    clearFile("Judge" + str(judgeNum) + "/data.out")
 
 def decode(cde):
     if cde == 0:
@@ -40,21 +39,7 @@ def decode(cde):
         return ""
 
 def clean(src):
-    ret = ""
-    for c in src:
-        if c != '`':
-            ret += c
-
-    forb = settings.find_one({"type":"forbidden"})['arr']
-    initial = len(ret)
-    prev = len(ret)
-    while True:
-        for x in forb:
-            ret = ret.replace(x, "")
-        if len(ret) == prev:
-            break
-        prev = len(ret)
-    return (ret, len(ret) != initial)
+    return src.replace("`", "")
 
 def getLen(contest):
     return settings.find_one({"type":"contest", "name":contest})['len']
@@ -305,7 +290,6 @@ async def on_message(message):
             avail = judges['num']
 
             cleaned = ""
-            warn = False
             if message.attachments:
                 url = message.attachments[0]
                 r = requests.get(url, allow_redirects=True)
@@ -316,14 +300,10 @@ async def on_message(message):
                 wc.close()
                 
                 dbg = open("Judge" + str(avail) + "/" + filename, "r")
-                fromClean = clean(dbg.read())
-                cleaned = fromClean[0]
-                warn = fromClean[1]
+                cleaned = clean(dbg.read())
             else:
                 # Clean up code from all backticks
-                fromClean = clean(str(message.content))
-                cleaned = fromClean[0]
-                warn = fromClean[1]
+                cleaned = clean(str(message.content))
                 
             writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
             if len(cleaned) <= 0:
@@ -368,8 +348,6 @@ async def on_message(message):
             problemData.close()
 
             msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = timelim)) + "\nRunning on Judging Server #" + str(avail) + "\n\n"
-            if warn:
-                msg += "- Compilation warning: Illegal/Forbidden keywords found in source code!\n\n"
             curmsg = await message.channel.send("```" + msg + "(Status: COMPILING)```")
 
             language = settings.find_one({"type":"lang", "name":lang})
