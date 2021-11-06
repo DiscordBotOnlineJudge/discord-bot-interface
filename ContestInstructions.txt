@@ -1,0 +1,23 @@
+Welcome to the programming contest! Torneo de programación ICI
+There are five problems as follows: Hay ocho problemas:
+
+Problem 1: uatc1
+Problem 2: uatc2
+Problem 3: uatc3
+Problem 4: uatc4
+Problem 5: uatc5
+Problem 6: uatc6
+Problem 7: uatc7
+Problem 8: uatc8
+
+You have the whole day to complete the contest. Tienes todo el día para completar el concurso.
+
+To open the problem, type "-open [problemName]". For example, "-open uatc1".
+To submit a solution, type "-submit [problemName] [language]". For example, "-submit uatc1 c++"
+All the problems need to be solved using c++ or c. Todos los problemas deben ser resueltos en c++
+o c.
+To see the scoreboard, type "-rank uatc" or head to #live-contest-scoreboard.
+
+Para abrir una declaración de problema, escriba "-open [nombre]". Por ejemplo, "-open uatc1".
+Para presentar una solución, escriba "-submit [nombre] [idioma]". Por ejemplo, "-submit uatc1 c++"
+Para ver el marcador, escriba "-rank uatc" o visitar #live-contest-scoreboard.

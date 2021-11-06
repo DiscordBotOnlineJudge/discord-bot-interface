@@ -1,0 +1,28 @@
+```
+Welcome to the Hello, World Problem!
+Your task is to print the string "Hello, World!"
+
+------------------------------------------------
+
+Sample solution written in Python:
+print("Hello, World!")
+
+------------------------------------------------
+
+Sample solution written in Java: (Remember: all Java programs 
+must have the public class "Main")
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}
+
+------------------------------------------------
+
+Sample solution in C++:
+#include <iostream>
+int main() {
+    std::cout << "Hello, World!";
+}
+```
