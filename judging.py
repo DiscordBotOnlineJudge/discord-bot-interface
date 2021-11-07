@@ -83,7 +83,7 @@ def getIsolateTime(judgeNum):
     for line in meta:
         if line.startswith("time"):
             meta.close()
-            return int(line[line.find(":") + 1:])
+            return int(line[line.find(":") + 1:].strip())
     print("Could not find time variable")
     return -1
 
