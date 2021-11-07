@@ -477,7 +477,6 @@ async def on_message(message):
                 msg += "\n"
             msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
             await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
-            clearSources(avail)
 
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
             await updateStatus()
@@ -543,7 +542,7 @@ async def on_message(message):
             judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
             msg = f.read()
-            await message.channel.send(msg + "\nTo see exact executions, visit https://dboj-problem-adding-web-app.jimmyliu3.repl.co/")
+            await message.channel.send(msg + "\nTo see exact execution commands, visit https://dboj-problem-adding-web-app.jimmyliu3.repl.co/")
         elif str(message.content).startswith("-error"):
             f = open("errors.txt", "r")
             await message.channel.send("```\n" + f.read(5000) + "\n```")
@@ -613,7 +612,6 @@ async def on_message(message):
             await message.channel.send("Successfully cancelled all active submission requests")
         elif str(message.content) == "-sigterm":
             running = False # set terminate signal
-            await contactExternalGrader("!sigterm")
             await message.channel.send("Attempting to terminate processes.")
         elif str(message.content) == "-sigkill":
             await message.channel.send("Killing process signal using system exiter.")
