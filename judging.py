@@ -123,11 +123,12 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     ft = getIsolateTime(judgeNum)
     if ft < 0: # Not an isolate process
         ft = time.time() - startTime
-    else:
-        try:
-            os.remove("Judge" + str(judgeNum) + "/meta.yaml")
-        except:
-            print("Could not remove isolate meta.yaml file")
+    
+    try:
+        os.remove("Judge" + str(judgeNum) + "/meta.yaml")
+    except:
+        print("Could not remove isolate meta.yaml file")
+        
     taken = "{x:.3f}".format(x = ft)
 
     poll = proc.poll()
