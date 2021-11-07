@@ -75,6 +75,18 @@ def write_file(storage_client, problem, bat, case, ext, save):
     blob = storage_client.blob("TestData/" + problem + "/data" + str(bat) + "." + str(case) + "." + ext)
     blob.download_to_filename(save)
 
+def getIsolateTime(judgeNum):
+    try:
+        meta = open("Judge" + str(judgeNum) + "/meta.yaml", "r")
+    except:
+        return -1
+    for line in meta:
+        if line.startswith("time"):
+            meta.close()
+            return int(line[line.find(":") + 1:])
+    print("Could not find time variable")
+    return -1
+
 def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     if bat <= 1 and case <= 1 and len(compl) > 0:
         anyErrors = open("Judge" + str(judgeNum) + "/errors.txt", "w")
@@ -108,7 +120,14 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             tle = True
             break
 
-    ft = time.time() - startTime
+    ft = getIsolateTime(judgeNum)
+    if ft < 0: # Not an isolate process
+        ft = time.time() - startTime
+    else:
+        try:
+            os.remove("Judge" + str(judgeNum) + "/meta.yaml")
+        except:
+            print("Could not remove isolate meta.yaml file")
     taken = "{x:.3f}".format(x = ft)
 
     poll = proc.poll()
