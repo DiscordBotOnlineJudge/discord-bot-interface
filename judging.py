@@ -133,4 +133,4 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             return ("Wrong Answer [" + taken + " seconds]", ft)
     except Exception as e:
         print("Fatal error during grading:\n", str(e))
-        return ("Internal Error [" + taken + " seconds]", ft)
+        return ("Internal System Error [" + taken + " seconds]", ft)
