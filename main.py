@@ -350,6 +350,8 @@ async def on_message(message):
             compl = language['compl'].format(x = avail)
             cmdrun = language['run'].format(x = avail).format(t = timelim)
 
+            print("Command formatted to " + cmdrun)
+
             finalscore = 0
             ce = False
 
@@ -485,6 +487,7 @@ async def on_message(message):
                 await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
+            print(str(e))
         clearSources(avail)
 
     else:
