@@ -306,12 +306,6 @@ async def on_message(message):
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
                 writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
-                
-            if len(cleaned) <= 0:
-                await message.channel.send("Judging error: Source code is empty")
-                settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
-                await updateStatus()
-                return
 
             settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
             await message.channel.send("Now judging your program. Please wait a few seconds.")
