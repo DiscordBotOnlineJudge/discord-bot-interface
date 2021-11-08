@@ -296,12 +296,12 @@ async def on_message(message):
 
             if message.attachments:
                 url = message.attachments[0]
-                r = requests.get(url, allow_redirects=True)
-
-                wc = open("Judge" + str(avail) + "/" + filename, "wb")
-                wc.write(r.content)
-                wc.flush()
-                wc.close()
+                os.system("wget " + url.url + " --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
+                #r = requests.get(url, allow_redirects=True)
+                #wc = open("Judge" + str(avail) + "/" + filename, "wb")
+                #wc.write(r.content)
+                #wc.flush()
+                #wc.close()
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
