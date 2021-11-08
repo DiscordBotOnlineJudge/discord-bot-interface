@@ -348,9 +348,7 @@ async def on_message(message):
 
             language = settings.find_one({"type":"lang", "name":lang})
             compl = language['compl'].format(x = avail)
-            cmdrun = language['run'].format(x = avail).format(t = timelim)
-
-            print("Command formatted to " + cmdrun)
+            cmdrun = language['run'].format(x = avail, t = timelim)
 
             finalscore = 0
             ce = False
