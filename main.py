@@ -294,6 +294,7 @@ async def on_message(message):
 
             avail = judges['num']
 
+            cleaned = ""
             if message.attachments:
                 url = message.attachments[0]
                 os.system("wget " + url.url + " --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
