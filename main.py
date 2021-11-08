@@ -471,8 +471,6 @@ async def on_message(message):
                 msg += "\n"
             msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
             await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
-
-            settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
             await updateStatus()
 
             if not running:
@@ -486,7 +484,9 @@ async def on_message(message):
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
             print(str(e))
+
         clearSources(avail)
+        settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
 
     else:
         if len(str(message.content)) <= 0:
