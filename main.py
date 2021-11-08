@@ -294,7 +294,6 @@ async def on_message(message):
 
             avail = judges['num']
 
-            cleaned = ""
             if message.attachments:
                 url = message.attachments[0]
                 r = requests.get(url, allow_redirects=True)
@@ -303,14 +302,11 @@ async def on_message(message):
                 wc.write(r.content)
                 wc.flush()
                 wc.close()
-                
-                dbg = open("Judge" + str(avail) + "/" + filename, "r")
-                cleaned = clean(dbg.read())
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
+                writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
                 
-            writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
             if len(cleaned) <= 0:
                 await message.channel.send("Judging error: Source code is empty")
                 settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
