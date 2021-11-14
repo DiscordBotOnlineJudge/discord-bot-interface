@@ -222,7 +222,7 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="-help"))
 
     global storage_client
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-service-key.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/admin/Discord-Bot-Online-Judge-v2/google-service-key.json'
     stc = storage.Client()
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
