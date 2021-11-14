@@ -297,7 +297,7 @@ async def on_message(message):
             cleaned = ""
             if message.attachments:
                 url = message.attachments[0]
-                os.system("wget " + url.url + " --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
+                os.system("wget " + url.url + " -Q10k --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
                 #r = requests.get(url, allow_redirects=True)
                 #wc = open("Judge" + str(avail) + "/" + filename, "wb")
                 #wc.write(r.content)
@@ -471,7 +471,6 @@ async def on_message(message):
                 msg += "\n"
             msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
             await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
-            await updateStatus()
 
             if not running:
                 await message.channel.send("Submission terminated.")
@@ -487,6 +486,7 @@ async def on_message(message):
 
         clearSources(avail)
         settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
+        await updateStatus()
 
     else:
         if len(str(message.content)) <= 0:
