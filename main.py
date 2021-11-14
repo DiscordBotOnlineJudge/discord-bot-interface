@@ -226,7 +226,7 @@ async def on_ready():
     stc = storage.Client()
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
-    pswd = open("PASSWORD", "r").read().strip()
+    pswd = open("/home/admin/Discord-Bot-Online-Judge-v2/PASSWORD", "r").read().strip()
 
     cluster = MongoClient("mongodb+srv://onlineuser:$" + pswd + "@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
     db = cluster['database']
@@ -721,5 +721,5 @@ async def on_message(message):
             except discord.errors.HTTPException:
                 await message.channel.send("Error: console output too long")
 
-with open("TOKEN", "r") as f:
+with open("/home/admin/Discord-Bot-Online-Judge-v2/TOKEN", "r") as f:
     client.run(f.read().strip())
