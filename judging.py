@@ -82,7 +82,7 @@ def getIsolateTime(judgeNum, settings):
     try:
         meta = open("Judge" + str(judgeNum) + "/meta.yaml", "r")
     except:
-        return -1
+        return (-1, -1)
     for line in meta:
         if line.startswith("time"):
             t = float(line[line.find(":") + 1:].strip())
