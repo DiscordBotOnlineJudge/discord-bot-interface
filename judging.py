@@ -87,10 +87,10 @@ def getIsolateTime(judgeNum, settings):
         if line.startswith("time"):
             t = float(line[line.find(":") + 1:].strip())
         elif line.startswith("cg-mem"):
-            totalMem = float(line[line.find(":") + 1:].strip())
-            cgmem = settings.find_one({"type":"memlog"})['value']
-            mem = totalMem - cgmem
-            settings.update_one({"type":"memlog"}, {"$set":{"value":totalMem}})
+            mem = float(line[line.find(":") + 1:].strip())
+            #cgmem = settings.find_one({"type":"memlog"})['value']
+            #mem = totalMem - cgmem
+            #settings.update_one({"type":"memlog"}, {"$set":{"value":totalMem}})
     meta.close()
     return (t, mem)
 
@@ -136,7 +136,9 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, se
     fm = getIsolate[1]
     if ft < 0: # Not an isolate process
         ft = time.time() - startTime
-        
+    else:
+        os.system("isolate --clean && isolate --box-id=0 --cg --init")
+
     taken = "{x:.3f}".format(x = ft)
 
     poll = proc.poll()
@@ -155,8 +157,10 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, se
         return ("Runtime/Memory Error (Exit code " + str(poll) + ") [" + taken + " seconds]", ft)
     
     memMsg = ""
-    if fm >= 0:
+    if fm >= 1000:
         memMsg = ", {x:.2f} MB".format(x = fm / 1024) # Convert from KB to MB
+    elif fm >= 0:
+        memMsg = ", {x:.2f} KB".format(x = fm)
 
     try:
         if checkEqual(problem, bat, case, judgeNum, sc):
