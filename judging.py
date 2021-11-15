@@ -106,6 +106,10 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             return ("Compilation Error", 0)
 
     write_file(sc, problem, bat, case, "in", "Judge" + str(judgeNum) + "/data.in")
+    try:
+        os.remove("Judge" + str(judgeNum) + "/meta.yaml")
+    except:
+        print("Could not remove isolate meta.yaml file")
 
     myInput = open("Judge" + str(judgeNum) + "/data.in", "r")
     myOutput = open("Judge" + str(judgeNum) + "/data.out", "w")
@@ -123,11 +127,6 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     ft = getIsolateTime(judgeNum)
     if ft < 0: # Not an isolate process
         ft = time.time() - startTime
-    
-    try:
-        os.remove("Judge" + str(judgeNum) + "/meta.yaml")
-    except:
-        print("Could not remove isolate meta.yaml file")
         
     taken = "{x:.3f}".format(x = ft)
 
