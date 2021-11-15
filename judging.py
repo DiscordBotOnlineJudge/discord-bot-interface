@@ -75,7 +75,7 @@ def write_file(storage_client, problem, bat, case, ext, save):
     blob = storage_client.blob("TestData/" + problem + "/data" + str(bat) + "." + str(case) + "." + ext)
     blob.download_to_filename(save)
 
-def getIsolateTime(judgeNum):
+def getIsolateTime(judgeNum, settings):
     meta = None
     t = -1
     mem = -1
@@ -87,11 +87,14 @@ def getIsolateTime(judgeNum):
         if line.startswith("time"):
             t = float(line[line.find(":") + 1:].strip())
         elif line.startswith("cg-mem"):
-            mem = float(line[line.find(":") + 1:].strip())
+            totalMem = float(line[line.find(":") + 1:].strip())
+            cgmem = settings.find_one({"type":"memlog"})['value']
+            mem = totalMem - cgmem
+            settings.update_one({"type":"memlog"}, {"$set":{"value":totalMem}})
     meta.close()
     return (t, mem)
 
-def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
+def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, settings):
     if bat <= 1 and case <= 1 and len(compl) > 0:
         anyErrors = open("Judge" + str(judgeNum) + "/errors.txt", "w")
         stdout = open("Judge" + str(judgeNum) + "/stdout.txt", "w")
@@ -128,7 +131,7 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             tle = True
             break
 
-    getIsolate = getIsolateTime(judgeNum)
+    getIsolate = getIsolateTime(judgeNum, settings)
     ft = getIsolate[0]
     fm = getIsolate[1]
     if ft < 0: # Not an isolate process
