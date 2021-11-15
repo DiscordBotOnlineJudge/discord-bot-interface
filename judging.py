@@ -76,16 +76,20 @@ def write_file(storage_client, problem, bat, case, ext, save):
     blob.download_to_filename(save)
 
 def getIsolateTime(judgeNum):
+    meta = None
+    t = -1
+    mem = -1
     try:
         meta = open("Judge" + str(judgeNum) + "/meta.yaml", "r")
     except:
         return -1
     for line in meta:
         if line.startswith("time"):
-            meta.close()
-            return float(line[line.find(":") + 1:].strip())
-    print("Could not find time variable")
-    return -1
+            t = float(line[line.find(":") + 1:].strip())
+        elif line.startswith("cg-mem"):
+            mem = float(line[line.find(":") + 1:].strip())
+    meta.close()
+    return (t, mem)
 
 def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     if bat <= 1 and case <= 1 and len(compl) > 0:
@@ -124,7 +128,9 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
             tle = True
             break
 
-    ft = getIsolateTime(judgeNum)
+    getIsolate = getIsolateTime(judgeNum)
+    ft = getIsolate[0]
+    fm = getIsolate[1]
     if ft < 0: # Not an isolate process
         ft = time.time() - startTime
         
@@ -145,11 +151,15 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc):
     elif not poll == 0:
         return ("Runtime/Memory Error (Exit code " + str(poll) + ") [" + taken + " seconds]", ft)
     
+    memMsg = ""
+    if fm >= 0:
+        memMsg = ", {x:.2f} MB".format(x = fm / 1024) # Convert from KB to MB
+
     try:
         if checkEqual(problem, bat, case, judgeNum, sc):
-            return ("Accepted [" + taken + " seconds]", ft)
+            return ("Accepted [" + taken + " seconds" + memMsg + "]", ft)
         else:
-            return ("Wrong Answer [" + taken + " seconds]", ft)
+            return ("Wrong Answer [" + taken + " seconds" + memMsg + "]", ft)
     except Exception as e:
         print("Fatal error during grading:\n", str(e))
-        return ("Internal System Error [" + taken + " seconds]", ft)
+        return ("Internal System Error [" + taken + " seconds" + memMsg + "]", ft)
