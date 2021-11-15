@@ -370,7 +370,7 @@ async def on_message(message):
                     for i in range(1, batches[b] + 1):
                         verd = ""
                         if not sk:
-                            verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)[0]
+                            verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)[0]
 
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
@@ -419,7 +419,7 @@ async def on_message(message):
 
                         verd = ""
                         if not sk:
-                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client)
+                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
                             verd = vv[0]
                             tt += vv[1]
 
