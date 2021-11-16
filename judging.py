@@ -150,11 +150,12 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, se
     anyErrors.close()
 
     ts = "{x:.3f}".format(x = timelim)
+    memTaken = fm / 1024
 
     if tle:
-        return ("Time Limit Exceeded [>" + str(ts) + " seconds]", ft)
+        return ("Time Limit Exceeded [>" + str(ts) + " seconds]", ft, memTaken)
     elif not poll == 0:
-        return ("Runtime/Memory Error (Exit code " + str(poll) + ") [" + taken + " seconds]", ft)
+        return ("Runtime/Memory Error (Exit code " + str(poll) + ") [" + taken + " seconds]", ft, memTaken)
     
     memMsg = ""
     if fm >= 1000:
@@ -164,9 +165,9 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, se
 
     try:
         if checkEqual(problem, bat, case, judgeNum, sc):
-            return ("Accepted [" + taken + " seconds" + memMsg + "]", ft)
+            return ("Accepted [" + taken + " seconds" + memMsg + "]", ft, memTaken)
         else:
-            return ("Wrong Answer [" + taken + " seconds" + memMsg + "]", ft)
+            return ("Wrong Answer [" + taken + " seconds" + memMsg + "]", ft, memTaken)
     except Exception as e:
         print("Fatal error during grading:\n", str(e))
-        return ("Internal System Error [" + taken + " seconds" + memMsg + "]", ft)
+        return ("Internal System Error [" + taken + " seconds" + memMsg + "]", ft, memTaken)
