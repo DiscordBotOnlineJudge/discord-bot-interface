@@ -413,6 +413,7 @@ async def on_message(message):
                             cnt += 1
                 else:
                     tt = 0
+                    avgMem = 0
                     for i in range(1, batches[b] + 1):
                         if individual or cnt % interval == 0 or i == 1:
                             await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n      Pending judgement on case " + str(i) + "\n\n(Status: RUNNING)```"))
@@ -422,6 +423,7 @@ async def on_message(message):
                             vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
                             verd = vv[0]
                             tt += vv[1]
+                            avgMem += vv[2]
 
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
@@ -446,7 +448,7 @@ async def on_message(message):
                         cnt += 1
                     
                     if not sk and not ce:
-                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + "+     All cases passed (" + str(batches[b]) + " cases in " + "{x:.3f}".format(x = tt) + " seconds)" + "\n\n"
+                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + "+     All cases passed (" + str(batches[b]) + " cases in " + "{x:.3f}s, {m:.2f} MB)".format(x = tt, m = avgMem / batches[b]) + "\n\n"
                         finalscore += points[b]
 
                 if ce:
