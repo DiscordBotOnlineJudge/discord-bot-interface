@@ -374,7 +374,7 @@ async def on_message(message):
                         verd = ""
                         if not sk:
                             vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
-                            verdict = vv[0]
+                            verd = vv[0]
                             totalTime += vv[1]
                             processMem += vv[2]
 
