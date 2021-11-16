@@ -358,6 +358,9 @@ async def on_message(message):
             interval = int(math.ceil(tot / 4))
             cnt = 0
 
+            totalTime = 0
+            processMem = 0
+
             if tot > 20:
                 interval //= 2
 
@@ -370,7 +373,10 @@ async def on_message(message):
                     for i in range(1, batches[b] + 1):
                         verd = ""
                         if not sk:
-                            verd = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)[0]
+                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
+                            verdict = vv[0]
+                            totalTime += vv[1]
+                            processMem += vv[2]
 
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
@@ -425,6 +431,9 @@ async def on_message(message):
                             tt += vv[1]
                             avgMem += vv[2]
 
+                            totalTime += vv[1]
+                            processMem += vv[2]
+
                         if not sk and verd.split()[0] == "Compilation":
                             comp = open("Judge" + str(avail) + "/errors.txt", "r")
                             pe = open("Judge" + str(avail) + "/stdout.txt", "r")
@@ -471,7 +480,7 @@ async def on_message(message):
                 
             if batches[len(batches) - 1] == 1:
                 msg += "\n"
-            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished"
+            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution completed using {taken:.3f} seconds, {mem:.2f} MB".format(taken = totalTime, mem = processMem / tot)
             await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
 
             if not running:
