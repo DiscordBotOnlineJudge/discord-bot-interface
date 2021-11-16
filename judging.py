@@ -137,7 +137,7 @@ def judge(problem, bat, case, compl, cmdrun, judgeNum, timelim, username, sc, se
     if ft < 0: # Not an isolate process
         ft = time.time() - startTime
     else:
-        os.system("isolate --clean > /dev/null && isolate --box-id=" + str(judgeNum) + " --cg --init > /dev/null")
+        os.system("isolate --cleanup > /dev/null && isolate --box-id=" + str(judgeNum) + " --cg --init > /dev/null")
 
     taken = "{x:.3f}".format(x = ft)
 
