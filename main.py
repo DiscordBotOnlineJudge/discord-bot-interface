@@ -480,7 +480,7 @@ async def on_message(message):
                 
             if batches[len(batches) - 1] == 1:
                 msg += "\n"
-            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution completed using {taken:.3f} seconds, {mem:.2f} MB".format(taken = totalTime, mem = processMem / tot)
+            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished using {taken:.3f} seconds, {mem:.2f} MB".format(taken = totalTime, mem = processMem / tot)
             await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
 
             if not running:
