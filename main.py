@@ -294,8 +294,10 @@ async def on_message(message):
             avail = judges['num']
 
             cleaned = ""
+            attachments = False
             if message.attachments:
                 cleaned = message.attachments[0].url
+                attachments = True
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
@@ -307,7 +309,7 @@ async def on_message(message):
             finalscore = None
             with grpc.insecure_channel(judges['ip'] + ":9999") as channel:
                 stub = judge_pb2_grpc.JudgeServiceStub(channel)
-                response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = message.attachments, filename = filename))
+                response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, filename = filename))
                 finalscore = response.finalScore
 
                 await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
