@@ -57,9 +57,8 @@ def perms(found, author):
 
 def getStatus():
     msg = ""
-    for x in range(1, 5):
-        j = settings.find_one({"type":"judge", "num":x})['status']
-        msg += "Judge #" + str(x) + ": " + decode(j) + "\n"
+    for x in settings.find({"type":"judge"}):
+        msg += "Judge #" + str(x) + ": " + decode(x['status']) + "\n"
     return msg
 
 async def updateStatus():
@@ -298,11 +297,6 @@ async def on_message(message):
             if message.attachments:
                 url = message.attachments[0]
                 os.system("wget " + url.url + " -Q10k --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
-                #r = requests.get(url, allow_redirects=True)
-                #wc = open("Judge" + str(avail) + "/" + filename, "wb")
-                #wc.write(r.content)
-                #wc.flush()
-                #wc.close()
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
@@ -727,10 +721,7 @@ async def on_message(message):
             output.flush()
             output.close()
 
-            try:
-                await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read() + "\n```")
-            except discord.errors.HTTPException:
-                await message.channel.send("Error: console output too long")
+            await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
 
 with open("/home/admin/Discord-Bot-Online-Judge-v2/TOKEN", "r") as f:
     client.run(f.read().strip())
