@@ -11,6 +11,9 @@ import asyncio
 import judging
 import contests
 import requests
+import grpc
+import judge_pb2
+import judge_pb2_grpc
 from google.cloud import storage
 from functools import cmp_to_key
 from pymongo import MongoClient
@@ -279,12 +282,9 @@ async def on_message(message):
             filename = settings.find_one({"type":"lang", "name":lang})['filename']
             judges = settings.find_one({"type":"judge", "status":0})
 
-            if judges is None or judges['num'] == 4:
+            if judges is None:
                 await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
                 return
-
-            if not running:
-                running = True
 
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
             settings.delete_one({"_id":req['_id']})
@@ -295,8 +295,7 @@ async def on_message(message):
 
             cleaned = ""
             if message.attachments:
-                url = message.attachments[0]
-                os.system("wget " + url.url + " -Q10k --timeout=3 -O " + "Judge" + str(avail) + "/" + filename)
+                cleaned = message.attachments[0].url
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
@@ -305,180 +304,13 @@ async def on_message(message):
             settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
             await message.channel.send("Now judging your program. Please wait a few seconds.")
 
-            judging.get_file(storage_client, "TestData/" + str(problem) + "/cases.txt", "Judge" + str(avail) + "/cases.txt")
-            problemData = open("Judge" + str(avail) + "/cases.txt", "r")
+            finalscore = None
+            with grpc.insecure_channel(judges['ip'] + ":9999") as channel:
+                stub = judge_pb2_grpc.JudgeServiceStub(channel)
+                response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = message.attachments, filename = filename))
+                finalscore = response.finalScore
 
-            batches = list(map(int, problemData.readline().split()))
-            extra = False
-            for x in batches:
-                if x >= 10:
-                    extra = True
-                    break
-            if len(batches) >= 10:
-                extra = True
-
-            points = list(map(int, problemData.readline().split()))
-
-            timelims = list(map(float, problemData.readline().split()))
-            timelim = None
-
-            id = settings.find_one({"type":"lang", "name":lang})['id']
-
-            if len(timelims) == 1:
-                timelim = timelims[0]
-            else:
-                timelim = timelims[id]
-
-            inds = problemData.readline()
-            individual = False
-            if len(inds) > 0:
-                arr = inds.split()
-                individual = arr[id].strip() == 'T'
-
-            problemData.close()
-
-            msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = timelim)) + "\nRunning on Judging Server #" + str(avail) + "\n\n"
-            curmsg = await message.channel.send("```" + msg + "(Status: COMPILING)```")
-
-            language = settings.find_one({"type":"lang", "name":lang})
-            compl = language['compl'].format(x = avail)
-            cmdrun = language['run'].format(x = avail, t = timelim)
-
-            finalscore = 0
-            ce = False
-
-            b = 0
-            tot = sum(batches)
-            interval = int(math.ceil(tot / 4))
-            cnt = 0
-
-            totalTime = 0
-            processMem = 0
-
-            if tot > 20:
-                interval //= 2
-
-            while b < len(batches) and running:
-                sk = False
-                batmsg = ""
-                verd = ""
-
-                if tot <= 20:
-                    for i in range(1, batches[b] + 1):
-                        verd = ""
-                        if not sk:
-                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
-                            verd = vv[0]
-                            totalTime += vv[1]
-                            processMem += vv[2]
-
-                        if not sk and verd.split()[0] == "Compilation":
-                            comp = open("Judge" + str(avail) + "/errors.txt", "r")
-                            pe = open("Judge" + str(avail) + "/stdout.txt", "r")
-                            msg += "- " + verd + "\n" + comp.read(1000)
-                            psrc = pe.read(1000)
-                            if len(psrc) > 0:
-                                msg += "\n" + psrc
-                            msg += "\n"
-                            comp.close()
-                            pe.close()
-                            ce = True
-                            break
-
-                        if not sk and verd.split()[0] == "Judging":
-                            msg += verd + "\n"
-
-                        batmsg += ("+" if verd.split()[0] == "Accepted" else "-") + "     Case #" + str(i) + ": " + (" " if (extra and i < 10) else "") + verd + "\n"
-                        if verd.split()[0] != "Accepted":
-                            for x in range(i + 1, batches[b] + 1):
-                                batmsg += "      Case #" + str(x) + ": " + (" " if (extra and x < 10) else "") + "--\n"
-                            sk = True
-
-                        if sk and batches[b] > 1:
-                            #if batches[b] > 1:
-                            await curmsg.edit(content = ("```diff\n" + msg + "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
-                            #else:
-                                #await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if extra else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-                            break
-                        else:
-                            if individual or (cnt + 1) % interval == 0: 
-                                if batches[b] > 1:
-                                    await curmsg.edit(content = ("```diff\n" + msg + "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n(Status: RUNNING)```"))
-                                else:
-                                    if sk:
-                                        await curmsg.edit(content = ("```diff\n" + msg + "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-                                    else:
-                                        await curmsg.edit(content = ("```diff\n" + msg + "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n\n(Status: RUNNING)```"))
-
-                            cnt += 1
-                else:
-                    tt = 0
-                    avgMem = 0
-                    for i in range(1, batches[b] + 1):
-                        if individual or cnt % interval == 0 or i == 1:
-                            await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n      Pending judgement on case " + str(i) + "\n\n(Status: RUNNING)```"))
-
-                        verd = ""
-                        if not sk:
-                            vv = judging.judge(problem, b + 1, i, compl, cmdrun, avail, timelim, str(message.author), storage_client, settings)
-                            verd = vv[0]
-                            tt += vv[1]
-                            avgMem += vv[2]
-
-                            totalTime += vv[1]
-                            processMem += vv[2]
-
-                        if not sk and verd.split()[0] == "Compilation":
-                            comp = open("Judge" + str(avail) + "/errors.txt", "r")
-                            pe = open("Judge" + str(avail) + "/stdout.txt", "r")
-                            msg += "- " + verd + "\n" + comp.read(1000)
-                            psrc = pe.read(1000)
-                            if len(psrc) > 0:
-                                msg += "\n" + psrc
-                            msg += "\n"
-                            comp.close()
-                            pe.close()
-                            ce = True
-                            break
-
-                        if not verd.startswith("Accepted"):
-                            await curmsg.edit(content = ("```diff\n" + msg + "  Batch #" + str(b + 1) + " (?/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n(Status: RUNNING)```"))
-                            msg += "  Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n-     " + verd[:(verd.index("["))] + "on case " + str(i) + " " + verd[(verd.index("[")):] + "\n\n"
-                            sk = True
-                            cnt += 1
-                            break
-
-                        cnt += 1
-                    
-                    if not sk and not ce:
-                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + "+     All cases passed (" + str(batches[b]) + " cases in " + "{x:.3f}s, {m:.2f} MB)".format(x = tt, m = avgMem / batches[b]) + "\n\n"
-                        finalscore += points[b]
-
-                if ce:
-                    break
-                if tot > 20:
-                    b += 1
-                    continue
-                if not sk:
-                    finalscore += points[b]
-                    if batches[b] == 1:
-                        msg += "+ Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n"
-                    else:
-                        msg += "+ Batch #" + str(b + 1) + " (" + str(points[b]) + "/" + str(points[b]) + " points)\n" + batmsg + "\n"
-                else:
-                    if batches[b] == 1:
-                        msg += "- Test case #" + str(b + 1) + ": " + (" " if (extra and b < 9) else "") + verd + " (0/" + str(points[b]) + " points)\n"
-                    else:
-                        msg += "- Batch #" + str(b + 1) + " (0/" + str(points[b]) + " points)\n" + batmsg + "\n"
-                b += 1
-                
-            if batches[len(batches) - 1] == 1:
-                msg += "\n"
-            msg += "\nFinal Score: " + str(finalscore) + " / 100\nExecution finished using {taken:.3f} seconds, {mem:.2f} MB".format(taken = totalTime, mem = processMem / tot)
-            await curmsg.edit(content = ("```diff\n" + msg + "\n(Status: COMPLETED)```"))
-
-            if not running:
-                await message.channel.send("Submission terminated.")
+                await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
 
             if finalscore == 100:
                 addToProfile(str(message.author), problem)
