@@ -219,14 +219,12 @@ async def sendLiveScoreboards():
     for x in range(len(current_contest)):
         scb[x] = await sbc.send(getScoreboard(current_contest[x]))
 
-async def live_submission_helper(message, judgeNum):
-    while True:
-        print("Refreshing live submission status")
-        await message.edit(content = settings.find_one({"type":"judge", "num":judgeNum})['output'])
-        await asyncio.sleep(1.5)
-
-def live_submission(message, judgeNum):
-    asyncio.run(live_submission_helper(message, judgeNum))
+def runSubmission(judges, username, cleaned, lang, problm, attachments, filename, return_dict):
+    with grpc.insecure_channel(judges['ip'] + ":" + str(judges['port'])) as channel:
+        stub = judge_pb2_grpc.JudgeServiceStub(channel)
+        response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, filename = filename))
+        finalscore = response.finalScore
+        return_dict['finalscore'] = finalscore
 
 @client.event
 async def on_ready():
@@ -315,18 +313,25 @@ async def on_message(message):
             settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
             await message.channel.send("Now judging your program. Please wait a few seconds.")
 
-            finalscore = None
-            with grpc.insecure_channel(judges['ip'] + ":9999") as channel:
-                live_update = Process(target = live_submission, args = (message, avail))
-                live_update.start()
+            return_dict = {}
+            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict))
+            rpc.start()
 
-                stub = judge_pb2_grpc.JudgeServiceStub(channel)
-                response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, filename = filename))
-                
-                live_update.terminate()
-                finalscore = response.finalScore
+            msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = timelim)) + "\nRunning on Judging Server #" + str(judgeNum) + "\n\n"
+            curmsg = await message.channel.send("```" + msg + "(Status: WAITING FOR JUDGE RESPONSE)```")
 
-                await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
+            msgContent = "```" + msg + "(Status: WAITING FOR JUDGE RESPONSE)```"
+
+            while rpc.is_alive():
+                newcontent = settings.find_one({"type":"judge", "num":avail})['output']
+                if newcontent != msgContent and len(newcontent) > 0:
+                    msgContent = newcontent
+                    await curmsg.edit(content = msgContent)
+                await asyncio.sleep(0.5)
+
+            finalscore = return_dict['finalscore']
+            settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
+            await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
 
             if finalscore == 100:
                 addToProfile(str(message.author), problem)
