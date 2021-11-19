@@ -308,7 +308,6 @@ async def on_message(message):
             else:
                 # Clean up code from all backticks
                 cleaned = clean(str(message.content))
-                writeCode(cleaned, "Judge" + str(avail) + "/" + filename)
 
             settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
             await message.channel.send("Now judging your program. Please wait a few seconds.")
