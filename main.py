@@ -8,7 +8,6 @@ import subprocess
 import math
 import dns
 import asyncio
-import judging
 import contests
 import requests
 import grpc
