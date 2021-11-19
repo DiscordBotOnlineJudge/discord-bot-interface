@@ -14,6 +14,7 @@ import requests
 import grpc
 import judge_pb2
 import judge_pb2_grpc
+from multiprocessing import Process
 from google.cloud import storage
 from functools import cmp_to_key
 from pymongo import MongoClient
@@ -219,6 +220,12 @@ async def sendLiveScoreboards():
     for x in range(len(current_contest)):
         scb[x] = await sbc.send(getScoreboard(current_contest[x]))
 
+async def live_submission(message, judgeNum):
+    while True:
+        print("Refreshing live submission status")
+        await message.edit(content = settings.find_one({"type":"judge", "num":judgeNum})['output'])
+        await asyncio.sleep(1.5)
+
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="-help"))
@@ -308,8 +315,13 @@ async def on_message(message):
 
             finalscore = None
             with grpc.insecure_channel(judges['ip'] + ":9999") as channel:
+                live_update = Process(target = live_submission, args = (message, avail))
+                live_update.start()
+
                 stub = judge_pb2_grpc.JudgeServiceStub(channel)
                 response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, filename = filename))
+                
+                live_update.terminate()
                 finalscore = response.finalScore
 
                 await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
