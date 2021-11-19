@@ -5,7 +5,6 @@ import subprocess
 import math
 import dns
 import asyncio
-import judging
 from pymongo import MongoClient
 from datetime import datetime
 import pytz
