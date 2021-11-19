@@ -332,7 +332,10 @@ async def on_message(message):
                         print("Edited empty message")
                 await asyncio.sleep(0.5)
 
-            finalscore = return_dict['finalscore']
+            try:
+                finalscore = return_dict['finalscore']
+            except:
+                await message.channel.send("Failed to read score")
             await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
             settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
 
@@ -343,7 +346,7 @@ async def on_message(message):
                 await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
-            print(str(e))
+            print(e)
 
         clearSources(avail)
         settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
