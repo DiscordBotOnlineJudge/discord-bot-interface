@@ -219,11 +219,14 @@ async def sendLiveScoreboards():
     for x in range(len(current_contest)):
         scb[x] = await sbc.send(getScoreboard(current_contest[x]))
 
-async def live_submission(message, judgeNum):
+async def live_submission_helper(message, judgeNum):
     while True:
         print("Refreshing live submission status")
         await message.edit(content = settings.find_one({"type":"judge", "num":judgeNum})['output'])
         await asyncio.sleep(1.5)
+
+def live_submission(message, judgeNum):
+    asyncio.run(live_submission_helper(message, judgeNum))
 
 @client.event
 async def on_ready():
