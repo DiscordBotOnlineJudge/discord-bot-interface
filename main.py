@@ -14,6 +14,7 @@ import grpc
 import judge_pb2
 import judge_pb2_grpc
 from multiprocessing import Process
+from multiprocessing import Manager
 from google.cloud import storage
 from functools import cmp_to_key
 from pymongo import MongoClient
@@ -313,7 +314,8 @@ async def on_message(message):
             settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
             await message.channel.send("Now judging your program. Please wait a few seconds.")
 
-            return_dict = {}
+            manager = Manager()
+            return_dict = manager.dict()
             rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict))
             rpc.start()
 
