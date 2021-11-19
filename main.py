@@ -317,10 +317,8 @@ async def on_message(message):
             rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict))
             rpc.start()
 
-            msg = "EXECUTION RESULTS\n" + username + "'s submission for " + problem + " in " + lang + "\n" + ("Time limit for this problem in " + lang + ": {x:.2f} seconds".format(x = problm['timelim'])) + "\nRunning on Judging Server #" + str(judgeNum) + "\n\n"
-            curmsg = await message.channel.send("```" + msg + "(Status: WAITING FOR JUDGE RESPONSE)```")
-
-            msgContent = "```" + msg + "(Status: WAITING FOR JUDGE RESPONSE)```"
+            msgContent = "```Waiting for response from Judge " + str(avail) + "```"
+            curmsg = await message.channel.send(msgContent)
 
             while rpc.is_alive():
                 newcontent = settings.find_one({"type":"judge", "num":avail})['output']
