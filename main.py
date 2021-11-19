@@ -342,7 +342,7 @@ async def on_message(message):
             if finalscore == 100:
                 addToProfile(str(message.author), problem)
             
-            if len(problm['contest']) > 0 and not ce:
+            if len(problm['contest']) > 0 and finalscore >= 0:
                 await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
