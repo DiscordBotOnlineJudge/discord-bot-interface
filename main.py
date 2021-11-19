@@ -316,7 +316,7 @@ async def on_message(message):
 
             manager = Manager()
             return_dict = manager.dict()
-            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict))
+            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict,))
             rpc.start()
 
             msgContent = "```Waiting for response from Judge " + str(avail) + "```"
