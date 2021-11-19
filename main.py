@@ -333,8 +333,8 @@ async def on_message(message):
                 await asyncio.sleep(0.5)
 
             finalscore = return_dict['finalscore']
+            await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
             settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
-            await message.channel.send(settings.find_one({"_id":judges['_id']})['output'])
 
             if finalscore == 100:
                 addToProfile(str(message.author), problem)
