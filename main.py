@@ -8,6 +8,7 @@ import subprocess
 import math
 import dns
 import asyncio
+import judging
 import contests
 import requests
 import grpc
@@ -220,10 +221,10 @@ async def sendLiveScoreboards():
     for x in range(len(current_contest)):
         scb[x] = await sbc.send(getScoreboard(current_contest[x]))
 
-def runSubmission(judges, username, cleaned, lang, problm, attachments, filename, return_dict):
+def runSubmission(judges, username, cleaned, lang, problm, attachments, return_dict):
     with grpc.insecure_channel(judges['ip'] + ":" + str(judges['port'])) as channel:
         stub = judge_pb2_grpc.JudgeServiceStub(channel)
-        response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, filename = filename))
+        response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments))
         finalscore = response.finalScore
         return_dict['finalscore'] = finalscore
 
@@ -286,8 +287,6 @@ async def on_message(message):
             settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
 
             problm = settings.find_one({"type":"problem", "name":problem})
-            
-            filename = settings.find_one({"type":"lang", "name":lang})['filename']
             judges = settings.find_one({"type":"judge", "status":0})
 
             if judges is None:
@@ -316,7 +315,7 @@ async def on_message(message):
 
             manager = Manager()
             return_dict = manager.dict()
-            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, filename, return_dict,))
+            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, return_dict,))
             rpc.start()
 
             msgContent = "```Waiting for response from Judge " + str(avail) + "```"
