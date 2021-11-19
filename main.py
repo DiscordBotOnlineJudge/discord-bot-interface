@@ -326,7 +326,10 @@ async def on_message(message):
                 newcontent = settings.find_one({"type":"judge", "num":avail})['output']
                 if newcontent != msgContent and len(newcontent) > 0:
                     msgContent = newcontent
-                    await curmsg.edit(content = msgContent)
+                    try:
+                        await curmsg.edit(content = msgContent)
+                    except:
+                        print("Edited empty message")
                 await asyncio.sleep(0.5)
 
             finalscore = return_dict['finalscore']
