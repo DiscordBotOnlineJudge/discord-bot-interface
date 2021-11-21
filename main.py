@@ -332,16 +332,15 @@ async def on_message(message):
 
             try:
                 finalscore = return_dict['finalscore']
+                await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
+                if finalscore == 100:
+                    addToProfile(str(message.author), problem)
+                if len(problm['contest']) > 0 and finalscore >= 0:
+                    await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
             except:
-                await message.channel.send("Failed to read score")
-            await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
-            settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
-
-            if finalscore == 100:
-                addToProfile(str(message.author), problem)
+                await message.channel.send("Judging error: Fatal error occured on Judge Server " + str(avail) + " while grading solution")
             
-            if len(problm['contest']) > 0 and finalscore >= 0:
-                await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
+            settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
             print(e)
