@@ -225,9 +225,8 @@ def runSubmission(judges, username, cleaned, lang, problm, attachments, return_d
     with grpc.insecure_channel(judges['ip'] + ":" + str(judges['port'])) as channel:
         stub = judge_pb2_grpc.JudgeServiceStub(channel)
         response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments))
-        return_dict['finalscore'] = response.finalScore
-        return_dict['errors'] = response.error
-        return_dict['finalOutput'] = response.finalOutput
+        finalscore = response.finalScore
+        return_dict['finalscore'] = finalscore
 
 @client.event
 async def on_ready():
@@ -333,13 +332,7 @@ async def on_message(message):
 
             try:
                 finalscore = return_dict['finalscore']
-                await curmsg.edit(content = return_dict['finalOutput'])
-
-                with open("errors.txt", "w") as errors:
-                    errors.write(return_dict['errors'])
-                    
-                if finalscore is None:
-                    raise Exception()
+                await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
                 if finalscore == 100:
                     addToProfile(str(message.author), problem)
                 if len(problm['contest']) > 0 and finalscore >= 0:
