@@ -70,7 +70,7 @@ async def updateStatus():
     msg = getStatus()
     global status
     try:
-        await status.edit(content = ("Current live status:\n```" + getStatus() + "\n```"))
+        await status.edit(content = ("**Current live judge server statuses:**\n```" + getStatus() + "\n```"))
     except:
         print("Failed to update live status")
         return
@@ -344,7 +344,6 @@ async def on_message(message):
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
             print(e)
 
-        clearSources(avail)
         settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
         await updateStatus()
 
@@ -455,7 +454,7 @@ async def on_message(message):
             await message.channel.send("Judge " + str(j) + " is now offline")
         elif str(message.content) == "-status":
             msg = getStatus()
-            await message.channel.send("Current Judge Statuses:\n```\n" + msg + "```")
+            await message.channel.send("**Current Judge Server Statuses:**\n```\n" + msg + "```")
         elif str(message.content).startswith("-reset"):
             settings.update_many({"type":"judge"}, {"$set":{"status":0}})
             await updateStatus()
