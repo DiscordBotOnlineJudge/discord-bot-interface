@@ -284,8 +284,6 @@ async def on_message(message):
             problem = req['problem']
             lang = req['lang']
 
-            settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
-
             problm = settings.find_one({"type":"problem", "name":problem})
             judges = settings.find_one({"type":"judge", "status":0})
 
@@ -293,6 +291,7 @@ async def on_message(message):
                 await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
                 return
 
+            settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
             settings.delete_one({"_id":req['_id']})
 
