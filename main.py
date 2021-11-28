@@ -250,7 +250,7 @@ async def on_ready():
     global status
     stat = client.get_channel(851468547414294568)
     await stat.purge(limit = 100)
-    status = await stat.send("Current live status:\n```" + getStatus() + "\n```")
+    status = await stat.send("**Current live judge server statuses:**\n```" + getStatus() + "\n```")
 
     await sendLiveScoreboards()
 
