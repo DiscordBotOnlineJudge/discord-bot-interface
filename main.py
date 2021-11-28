@@ -233,11 +233,11 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="-help"))
 
     global storage_client
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/admin/discord-bot-interface/google-service-key.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-service-key.json'
     stc = storage.Client()
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
-    pswd = open("/home/admin/discord-bot-interface/PASSWORD", "r").read().strip()
+    pswd = open("PASSWORD", "r").read().strip()
 
     cluster = MongoClient("mongodb+srv://onlineuser:$" + pswd + "@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
     db = cluster['database']
@@ -577,5 +577,5 @@ async def on_message(message):
 
             await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
 
-with open("/home/admin/discord-bot-interface/TOKEN", "r") as f:
+with open("TOKEN", "r") as f:
     client.run(f.read().strip())
