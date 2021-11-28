@@ -40,7 +40,7 @@ def decode(cde):
     if cde == 0:
         return "Available"
     elif cde == 1:
-        return "Currently grading a submission"
+        return "Submission in Progress"
     elif cde == 2:
         return "Offline"
     else:
@@ -63,7 +63,7 @@ def perms(found, author):
 def getStatus():
     msg = ""
     for x in settings.find({"type":"judge"}):
-        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']) + "\n"
+        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']).rjust(21) + "(" + x['runtimes'] + ")\n"
     return msg
 
 async def updateStatus():
