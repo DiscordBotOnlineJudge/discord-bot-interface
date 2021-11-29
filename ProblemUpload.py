@@ -29,7 +29,7 @@ def uploadProblem(settings, storage_client, url, author):
     
     batches = params['batches']
     for x in range(1, len(batches) + 1):
-        for y in range(1, len(batches[x]) + 1):
+        for y in range(1, len(batches[x - 1]) + 1):
             upload_blob(storage_client, "problemdata/data" + str(x) + "." + str(y) + ".in", "TestData/" + params['name'])
             upload_blob(storage_client, "problemdata/data" + str(x) + "." + str(y) + ".out", "TestData/" + params['name'])
     
