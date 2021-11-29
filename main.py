@@ -208,7 +208,7 @@ async def updateScore(contest, problem, user, score, ct):
         settings.update_one({"_id":post['_id']}, {"$set":{"taken":elapsed}})
 
     arr[num] = max(arr[num], score)
-    time_bonus[num] = get_bonus(contest_len - elapsed, score)
+    time_bonus[num] = max(time_bonus[num], get_bonus(contest_len - elapsed, score))
 
     settings.update_one({"_id":post['_id']}, {"$set":{"solved":arr, "penalty":penalty, "time-bonus":time_bonus}})
     await live_scoreboard(contest)
