@@ -140,7 +140,7 @@ def getScoreboard(contest):
             dt = "P" + str(y) + "-" + str(x['solved'][y])
 
             if time_bonus and x['time-bonus'][y] > 0:
-                dt += "(+" + x['time-bonus'][y] + ")"
+                dt += "(+" + str(x['time-bonus'][y]) + ")"
             if penalty and x['penalty'][y] > 0:
                 dt += "(" + str(x['penalty'][y]) + ")"
             pWid[y] = max(pWid[y], len(dt))
@@ -151,7 +151,7 @@ def getScoreboard(contest):
             dt = "P" + str(y) + "-" + str(x['solved'][y])
 
             if time_bonus and x['time-bonus'][y] > 0:
-                dt += "(+" + x['time-bonus'][y] + ")"
+                dt += "(+" + str(x['time-bonus'][y]) + ")"
             if penalty and x['penalty'][y] > 0:
                 dt += "(" + str(x['penalty'][y]) + ")"
                 
