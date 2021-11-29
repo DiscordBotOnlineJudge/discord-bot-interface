@@ -1,0 +1,7 @@
+name: name
+difficulty: points
+timelimit: [python, java, c++]
+batches: [casesInBatch1, casesInBatch2, ...]
+points: [pointsForBatch1, pointsForBatch2, ...]
+private: 1 for true 0 for false
+contest: (optional)

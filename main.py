@@ -14,6 +14,7 @@ import requests
 import grpc
 import judge_pb2
 import judge_pb2_grpc
+import ProblemUpload
 from multiprocessing import Process
 from multiprocessing import Manager
 from google.cloud import storage
@@ -597,6 +598,17 @@ async def on_message(message):
             output.close()
 
             await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
-
+        elif str(message.content).startswith("-problemdata"):
+            if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
+                await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
+                return
+            if len(message.attachments) == 0:
+                await message.channel.send("Please attach a zip archive with the problem info along with the `-problemdata` command")
+                return
+            
+            await message.channel.send("Uploading problem data...")
+            msg = ProblemUpload.uploadProblem(settings, storage_client, str(message.attachments[0]), str(message.author))
+            await message.channel.send(msg)
+            
 with open("TOKEN", "r") as f:
     client.run(f.read().strip())
