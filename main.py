@@ -607,11 +607,11 @@ async def on_message(message):
                 return
             
             await message.channel.send("Uploading problem data...")
-            try:
-                msg = ProblemUpload.uploadProblem(settings, storage_client, str(message.attachments[0]), str(message.author))
-                await message.channel.send(msg)
-            except Exception as e:
-                await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
+            #try:
+            msg = ProblemUpload.uploadProblem(settings, storage_client, str(message.attachments[0]), str(message.author))
+            await message.channel.send(msg)
+            #except Exception as e:
+            #    await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
             
             os.system("rm -r problemdata")
 with open("TOKEN", "r") as f:
