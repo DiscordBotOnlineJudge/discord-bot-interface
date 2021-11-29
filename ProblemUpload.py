@@ -8,20 +8,9 @@ def delete_blob(storage_client, blobname):
     blob.delete()
     
 def upload_blob(storage_client, sourceName, blobname):
-    storage_client = storage.Client()
     bucket = storage_client.bucket('discord-bot-oj-file-storage')
     blob = bucket.blob(blobname)
-
     blob.upload_from_filename(sourceName)
-    
-    #print("File: " + file)
-    #print("Blob: " + blobname)
-    #blob = storage_client.blob(blobname)
-    #try:
-    #blob.upload_from_file(file)
-    #except Exception as e:
-    #    print("Error with uploading file")
-    #    print(str(e))
 
 def uploadProblem(settings, storage_client, url, author):
     msg = ""
@@ -41,16 +30,12 @@ def uploadProblem(settings, storage_client, url, author):
     except:
         pass
     
-    #try:
-        batches = params['batches']
-        for x in range(1, len(batches) + 1):
-            for y in range(1, batches[x - 1] + 1):
-                data_file_name = "data" + str(x) + "." + str(y)
-                upload_blob(storage_client, "problemdata/" + data_file_name + ".in", "TestData/" + params['name'] + "/" + data_file_name + ".in")
-                upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
-    #except Exception as e:
-    #    print(str(e))
-    #    return "Error with uploading testdata"
+    batches = params['batches']
+    for x in range(1, len(batches) + 1):
+        for y in range(1, batches[x - 1] + 1):
+            data_file_name = "data" + str(x) + "." + str(y)
+            upload_blob(storage_client, "problemdata/" + data_file_name + ".in", "TestData/" + params['name'] + "/" + data_file_name + ".in")
+            upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
     
     try:
         cases = open("problemdata/cases.txt", "w")

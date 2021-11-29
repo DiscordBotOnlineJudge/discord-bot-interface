@@ -603,16 +603,16 @@ async def on_message(message):
                 await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
                 return
             if len(message.attachments) == 0:
-                await message.channel.send("Please attach a zip archive with the problem info along with the `-uploadproblem` command")
+                await message.channel.send("Please attach a zip archive with the problem info along with the `-export` command")
                 return
             
             await message.channel.send("Uploading problem data...")
-            #try:
-            msg = ProblemUpload.uploadProblem(settings, storage_client, str(message.attachments[0]), str(message.author))
-            await message.channel.send(msg)
-            #except Exception as e:
-            #    await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
+            try:
+                msg = ProblemUpload.uploadProblem(settings, storage.Client(), str(message.attachments[0]), str(message.author))
+                await message.channel.send(msg)
+            except Exception as e:
+                await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
             
-            #os.system("rm -r problemdata")
+            os.system("rm -r problemdata")
 with open("TOKEN", "r") as f:
     client.run(f.read().strip())
