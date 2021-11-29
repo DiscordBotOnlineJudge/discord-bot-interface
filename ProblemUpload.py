@@ -30,14 +30,14 @@ def uploadProblem(settings, storage_client, url, author):
         contest = params['contest']
     except:
         pass
-    settings.insert_one({"type":"problem", "name":params['name'], "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
     
     try:
         batches = params['batches']
         for x in range(1, len(batches) + 1):
             for y in range(1, batches[x - 1] + 1):
-                upload_blob(storage_client, "problemdata/data" + str(x) + "." + str(y) + ".in", "TestData/" + params['name'])
-                upload_blob(storage_client, "problemdata/data" + str(x) + "." + str(y) + ".out", "TestData/" + params['name'])
+                data_file_name = "data" + str(x) + "." + str(y)
+                upload_blob(storage_client, "problemdata/" + data_file_name + ".in", "TestData/" + params['name'] + "/" + data_file_name + ".in")
+                upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
     except Exception as e:
         print(str(e))
         return "Error with uploading testdata"
@@ -65,6 +65,8 @@ def uploadProblem(settings, storage_client, url, author):
             return "Problem name already exists under another author"
         msg += "Problem with name " + params["name"] + " already exists. Editing problem.\n"
         settings.delete_one({"_id":existingProblem['_id']})
+        
+    settings.insert_one({"type":"problem", "name":params['name'], "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
     
     msg += "Successfully uploaded problem data"
     return msg
