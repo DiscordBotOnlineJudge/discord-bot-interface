@@ -12,8 +12,10 @@ def upload_blob(storage_client, file, blobname):
 
 def uploadProblem(settings, storage_client, url, author):
     msg = ""
-    
-    os.mkdir("problemdata")
+    try:
+        os.mkdir("problemdata")
+    except:
+        pass
     os.system("wget " + url + " -Q10k --timeout=3 -O data.zip")
     with zipfile.ZipFile("data.zip", 'r') as zip_ref:
         zip_ref.extractall("problemdata")
