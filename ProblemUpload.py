@@ -25,7 +25,7 @@ def uploadProblem(settings, storage_client, url, author):
         contest = params['contest']
     except:
         pass
-    settings.insert_one({"type":"problem", "name":params['name'], "points":params['points'], "status":"s", "published":params['private'] == 0, "contest":contest})
+    settings.insert_one({"type":"problem", "name":params['name'], "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
     
     batches = params['batches']
     for x in range(1, len(batches) + 1):
