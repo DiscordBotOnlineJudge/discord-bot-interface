@@ -7,6 +7,8 @@ def delete_blob(storage_client, blobname):
     blob.delete()
     
 def upload_blob(storage_client, file, blobname):
+    print("File: " + file)
+    print("Blob: " + blobname)
     blob = storage_client.blob(blobname)
     #try:
     blob.upload_from_file(file)
