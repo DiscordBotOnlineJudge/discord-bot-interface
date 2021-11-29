@@ -1,3 +1,0 @@
-Judge3/SourceCode.cpp:8:7: warning: ISO C++ forbids declaration of ‘main’ with no type [-Wreturn-type]
- main ()
-       ^
