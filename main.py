@@ -184,7 +184,7 @@ async def live_scoreboard(contest):
     print("Failed to update live scoreboard")
 
 def get_bonus(rem, pts):
-    return (pts * rem) // 500
+    return (pts * rem) // 30000
 
 async def updateScore(contest, problem, user, score, ct):
     post = settings.find_one({"type":"access", "name":user, "mode":contest})
