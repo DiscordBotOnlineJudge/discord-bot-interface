@@ -50,7 +50,7 @@ def uploadProblem(settings, storage_client, url, author):
         cases.write("\n")
         cases.flush()
         cases.close()
-        upload_blob(storage_client, "problemdata/cases.txt", "TestData/" + params['name'])
+        upload_blob(storage_client, "problemdata/cases.txt", "TestData/" + params['name'] + "/cases.txt")
     except Exception as e:
         print(str(e))
         return "Error with uploading cases"
