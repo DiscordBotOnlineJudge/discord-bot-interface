@@ -8,11 +8,11 @@ def delete_blob(storage_client, blobname):
     
 def upload_blob(storage_client, file, blobname):
     blob = storage_client.blob(blobname)
-    try:
-        blob.upload_from_file(file)
-    except Exception as e:
-        print("Error with uploading file")
-        print(str(e))
+    #try:
+    blob.upload_from_file(file)
+    #except Exception as e:
+    #    print("Error with uploading file")
+    #    print(str(e))
 
 def uploadProblem(settings, storage_client, url, author):
     msg = ""
@@ -32,16 +32,16 @@ def uploadProblem(settings, storage_client, url, author):
     except:
         pass
     
-    try:
+    #try:
         batches = params['batches']
         for x in range(1, len(batches) + 1):
             for y in range(1, batches[x - 1] + 1):
                 data_file_name = "data" + str(x) + "." + str(y)
                 upload_blob(storage_client, "problemdata/" + data_file_name + ".in", "TestData/" + params['name'] + "/" + data_file_name + ".in")
                 upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
-    except Exception as e:
-        print(str(e))
-        return "Error with uploading testdata"
+    #except Exception as e:
+    #    print(str(e))
+    #    return "Error with uploading testdata"
     
     try:
         cases = open("problemdata/cases.txt", "w")
