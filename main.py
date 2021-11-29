@@ -598,12 +598,12 @@ async def on_message(message):
             output.close()
 
             await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
-        elif str(message.content).startswith("-problemdata"):
+        elif str(message.content).startswith("-uploadproblem"):
             if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
                 await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
                 return
             if len(message.attachments) == 0:
-                await message.channel.send("Please attach a zip archive with the problem info along with the `-problemdata` command")
+                await message.channel.send("Please attach a zip archive with the problem info along with the `-uploadproblem` command")
                 return
             
             await message.channel.send("Uploading problem data...")
