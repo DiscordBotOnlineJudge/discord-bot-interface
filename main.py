@@ -63,7 +63,7 @@ def perms(found, author):
 def getStatus():
     msg = ""
     for x in settings.find({"type":"judge"}):
-        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']).ljust(21)
+        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']).ljust(23)
         if x['status'] != 2:
             msg += "(" + x['runtimes'] + ")"
         msg += "\n"
