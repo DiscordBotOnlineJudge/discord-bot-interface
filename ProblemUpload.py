@@ -8,7 +8,10 @@ def delete_blob(storage_client, blobname):
     
 def upload_blob(storage_client, file, blobname):
     blob = storage_client.blob(blobname)
-    blob.upload_from_file(file)
+    try:
+        blob.upload_from_file(file)
+    except:
+        print("Error with uploading file")
 
 def uploadProblem(settings, storage_client, url, author):
     msg = ""
