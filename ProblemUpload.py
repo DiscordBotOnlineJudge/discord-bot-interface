@@ -54,6 +54,8 @@ def uploadProblem(settings, storage_client, url, author):
     except Exception as e:
         print(str(e))
         return "Error with uploading cases"
+
+    upload_blob(storage_client, "problemdata/description.md", "ProblemStatements/" + params['name'] + ".txt")
     
     if not existingProblem is None:
         if (not "author" in existingProblem) or author != existingProblem['author']:
