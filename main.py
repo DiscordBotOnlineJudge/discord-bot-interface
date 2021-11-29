@@ -121,6 +121,9 @@ def getScoreboard(contest):
     if ct is None:
         return "Contest not found!"
 
+    time_bonus = ct['has-time-bonus']
+    penalty = ct['has-penalty']
+
     fnd = settings.find({"type":"access", "mode":contest})
     arr = [x for x in fnd]
 
@@ -135,7 +138,10 @@ def getScoreboard(contest):
         namWid = max(namWid, len(x['name']))
         for y in range(1, len(x['solved'])):
             dt = "P" + str(y) + "-" + str(x['solved'][y])
-            if x['penalty'][y] > 0:
+
+            if time_bonus and x['time-bonus'][y] > 0:
+                dt += "(+" + x['time-bonus'][y] + ")"
+            if penalty and x['penalty'][y] > 0:
                 dt += "(" + str(x['penalty'][y]) + ")"
             pWid[y] = max(pWid[y], len(dt))
     for x in arr:
@@ -143,10 +149,14 @@ def getScoreboard(contest):
         total = 0
         for y in range(1, len(x['solved'])):
             dt = "P" + str(y) + "-" + str(x['solved'][y])
-            if x['penalty'][y] > 0:
+
+            if time_bonus and x['time-bonus'][y] > 0:
+                dt += "(+" + x['time-bonus'][y] + ")"
+            if penalty and x['penalty'][y] > 0:
                 dt += "(" + str(x['penalty'][y]) + ")"
+                
             m += dt.ljust(pWid[y]) + " "
-            total += x['solved'][y]
+            total += x['solved'][y] + x['time-bonus'][y]
         m += "total: " + str(total)
         comp.append((m, total, sum(x['penalty'])))
     
@@ -173,17 +183,22 @@ async def live_scoreboard(contest):
             return
     print("Failed to update live scoreboard")
 
+def get_bonus(rem, pts):
+    return (pts * rem) // 500
+
 async def updateScore(contest, problem, user, score, ct):
     post = settings.find_one({"type":"access", "name":user, "mode":contest})
     if post is None:
         print("Failed to update score (no access post)")
         return
     elapsed = contests.compare(post['start'], ct)
-    if elapsed > getLen(contest):
+    contest_len = getLen(contest)
+    if elapsed > contest_len:
         print("Invalid score update")
         return
     arr = post['solved']
     penalty = post['penalty']
+    time_bonus = post['time-bonus']
 
     num = int(problem[len(problem) - 1])
 
@@ -193,8 +208,9 @@ async def updateScore(contest, problem, user, score, ct):
         settings.update_one({"_id":post['_id']}, {"$set":{"taken":elapsed}})
 
     arr[num] = max(arr[num], score)
+    time_bonus[num] = get_bonus(contest_len - elapsed, score)
 
-    settings.update_one({"_id":post['_id']}, {"$set":{"solved":arr, "penalty":penalty}})
+    settings.update_one({"_id":post['_id']}, {"$set":{"solved":arr, "penalty":penalty, "time-bonus":time_bonus}})
     await live_scoreboard(contest)
 
 def remaining(name):
@@ -498,8 +514,9 @@ async def on_message(message):
 
             solved = [0] * (cont['problems'] + 1)
             penalties = [0] * (cont['problems'] + 1)
+            time_bonus = [0] * (cont['problems'] + 1)
 
-            settings.insert_one({"type":"access", "mode":arr[1], "name":str(message.author), "solved":solved, "penalty":penalties, "start":contests.current_time(), "taken":0})
+            settings.insert_one({"type":"access", "mode":arr[1], "name":str(message.author), "solved":solved, "penalty":penalties, "time-bonus":time_bonus, "start":contests.current_time(), "taken":0})
             await live_scoreboard(arr[1])
 
             await message.channel.send("Successfully joined contest `" + arr[1] + "`! You have " + amt(cont['len']) + " to complete the contest. Good Luck!\n")
