@@ -355,8 +355,9 @@ async def on_message(message):
                     addToProfile(str(message.author), problem)
                 if len(problm['contest']) > 0 and finalscore >= 0:
                     await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
-            except:
+            except Exception as e:
                 await message.channel.send("Judging error: Fatal error occured on Judge Server " + str(avail) + " while grading solution")
+                print(e)
             
             settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
         except Exception as e:
