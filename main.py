@@ -598,7 +598,7 @@ async def on_message(message):
             output.close()
 
             await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
-        elif str(message.content).startswith("-uploadproblem"):
+        elif str(message.content).startswith("-export"):
             if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
                 await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
                 return
