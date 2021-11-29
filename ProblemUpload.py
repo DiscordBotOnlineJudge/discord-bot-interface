@@ -1,17 +1,24 @@
 import zipfile
 import os
 import yaml
+from google.cloud import storage
 
 def delete_blob(storage_client, blobname):
     blob = storage_client.blob(blobname)
     blob.delete()
     
-def upload_blob(storage_client, file, blobname):
-    print("File: " + file)
-    print("Blob: " + blobname)
-    blob = storage_client.blob(blobname)
+def upload_blob(storage_client, sourceName, blobname):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket('discord-bot-oj-file-storage')
+    blob = bucket.blob(blobname)
+
+    blob.upload_from_filename(sourceName)
+    
+    #print("File: " + file)
+    #print("Blob: " + blobname)
+    #blob = storage_client.blob(blobname)
     #try:
-    blob.upload_from_file(file)
+    #blob.upload_from_file(file)
     #except Exception as e:
     #    print("Error with uploading file")
     #    print(str(e))
