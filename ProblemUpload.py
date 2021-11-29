@@ -56,12 +56,12 @@ def uploadProblem(settings, storage_client, url, author):
         return "Error with uploading cases"
     
     if not existingProblem is None:
-        if "author" in existingProblem and author != existingProblem['author']:
+        if (not "author" in existingProblem) or author != existingProblem['author']:
             return "Problem name already exists under another author"
         msg += "Problem with name " + params["name"] + " already exists. Editing problem.\n"
         settings.delete_one({"_id":existingProblem['_id']})
         
-    settings.insert_one({"type":"problem", "name":params['name'], "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
+    settings.insert_one({"type":"problem", "name":params['name'], "author":author, "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
     
     msg += "Successfully uploaded problem data"
     return msg
