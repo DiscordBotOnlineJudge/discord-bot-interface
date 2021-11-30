@@ -44,7 +44,11 @@ def uploadProblem(settings, storage_client, url, author):
         for y in range(1, batches[x - 1] + 1):
             data_file_name = "data" + str(x) + "." + str(y)
             upload_blob(storage_client, "problemdata/" + data_file_name + ".in", "TestData/" + params['name'] + "/" + data_file_name + ".in")
-            upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
+
+            try:
+                upload_blob(storage_client, "problemdata/" + data_file_name + ".out", "TestData/" + params['name'] + "/" + data_file_name + ".out")
+            except:
+                pass
     
     try:
         cases = open("problemdata/cases.txt", "w")
