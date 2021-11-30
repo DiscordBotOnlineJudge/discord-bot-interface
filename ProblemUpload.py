@@ -31,14 +31,14 @@ def uploadProblem(settings, storage_client, url, author):
         msg += "Problem with name `" + params["name"] + "` already exists. Editing problem and overwriting files.\n"
         settings.delete_one({"_id":existingProblem['_id']})
 
-    settings.insert_one({"type":"problem", "name":params['name'], "author":author, "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
-
     contest = ""
     try:
         contest = params['contest']
     except:
         pass
     
+    settings.insert_one({"type":"problem", "name":params['name'], "author":author, "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
+
     batches = params['batches']
     for x in range(1, len(batches) + 1):
         for y in range(1, batches[x - 1] + 1):
