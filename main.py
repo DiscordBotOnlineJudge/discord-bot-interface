@@ -615,6 +615,6 @@ async def on_message(message):
             except Exception as e:
                 await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
             
-            os.system("rm -r problemdata")
+            os.system("rm -r problemdata; rm data.zip")
 with open("TOKEN", "r") as f:
     client.run(f.read().strip())

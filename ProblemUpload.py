@@ -24,6 +24,15 @@ def uploadProblem(settings, storage_client, url, author):
     
     params = yaml.safe_load(open("problemdata/params.yaml", "r"))
     existingProblem = settings.find_one({"type":"problem", "name":params['name']})
+
+    if not existingProblem is None:
+        if (not "author" in existingProblem) or author != existingProblem['author']:
+            return "Error: problem name `" + params["name"] + "` already exists under another author"
+        msg += "Problem with name `" + params["name"] + "` already exists. Editing problem and overwriting files.\n"
+        settings.delete_one({"_id":existingProblem['_id']})
+
+    settings.insert_one({"type":"problem", "name":params['name'], "author":author, "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
+
     contest = ""
     try:
         contest = params['contest']
@@ -57,13 +66,5 @@ def uploadProblem(settings, storage_client, url, author):
 
     upload_blob(storage_client, "problemdata/description.md", "ProblemStatements/" + params['name'] + ".txt")
     
-    if not existingProblem is None:
-        if (not "author" in existingProblem) or author != existingProblem['author']:
-            return "Problem name already exists under another author"
-        msg += "Problem with name " + params["name"] + " already exists. Editing problem.\n"
-        settings.delete_one({"_id":existingProblem['_id']})
-        
-    settings.insert_one({"type":"problem", "name":params['name'], "author":author, "points":params['difficulty'], "status":"s", "published":params['private'] == 0, "contest":contest})
-    
-    msg += "Successfully uploaded problem data"
+    msg += "**Successfully uploaded problem data as problem `" + params['name'] + "`**"
     return msg
