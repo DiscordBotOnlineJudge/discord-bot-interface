@@ -55,6 +55,8 @@ def getLen(contest):
 
 def perms(found, author):
     acc = settings.find_one({"type":"access", "mode":found['contest'], "name":author})
+    if (not settings.find_one({"type":"access", "mode":"owner", "name":author}) is None):
+        return False # Has owner perms
     if (not settings.find_one({"type":"access", "mode":"admin", "name":author}) is None) and found['author'] == author:
         return False # Has admin perms
     elif (not acc is None) and (found['status'] == "s") and contests.compare(acc['start'], contests.current_time()) <= getLen(found['contest']):
