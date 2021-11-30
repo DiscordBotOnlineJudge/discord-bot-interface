@@ -66,5 +66,5 @@ def uploadProblem(settings, storage_client, url, author):
 
     upload_blob(storage_client, "problemdata/description.md", "ProblemStatements/" + params['name'] + ".txt")
     
-    msg += "**Successfully uploaded problem data as problem `" + params['name'] + "`**"
+    msg += "Successfully uploaded problem data as problem `" + params['name'] + "`"
     return msg
