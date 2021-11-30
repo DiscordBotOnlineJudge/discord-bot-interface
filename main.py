@@ -602,7 +602,7 @@ async def on_message(message):
             await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
         elif str(message.content).startswith("-export"):
             if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
-                await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
+                await message.channel.send("Sorry, you do not have sufficient permissions to use this command. Please contact jiminycricket#2701 for problem setting permissions.")
                 return
             if len(message.attachments) == 0:
                 await message.channel.send("Please attach a zip archive with the problem info along with the `-export` command")
