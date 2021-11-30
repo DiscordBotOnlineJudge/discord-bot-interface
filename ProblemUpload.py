@@ -66,5 +66,10 @@ def uploadProblem(settings, storage_client, url, author):
 
     upload_blob(storage_client, "problemdata/description.md", "ProblemStatements/" + params['name'] + ".txt")
     
+    try:
+        upload_blob(storage_client, "problemdata/checker.py", "TestData/" + params['name'] + "/checker.py")
+    except:
+        pass
+    
     msg += "Successfully uploaded problem data as problem `" + params['name'] + "`"
     return msg
