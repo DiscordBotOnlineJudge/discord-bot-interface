@@ -11,6 +11,8 @@ import asyncio
 import judging
 import contests
 import requests
+import secrets
+import string
 import grpc
 import judge_pb2
 import judge_pb2_grpc
@@ -46,6 +48,11 @@ def decode(cde):
         return "Offline"
     else:
         return ""
+
+def generatePassword():
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(alphabet) for i in range(13))
+    return password
 
 def clean(src):
     return src.replace("`", "")
@@ -616,5 +623,17 @@ async def on_message(message):
                 await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
             
             os.system("rm -r problemdata; rm data.zip")
+        elif str(message.content).lower().equals("-register"):
+            if not str(message.channel).startswith("Direct Message with"):
+                await message.channel.send("Please use `-register` in a direct message with the bot.")
+                return
+            if settings.find_one({"type":"account", "name":str(message.author)}) is not None:
+                await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
+                return
+            pswd = generatePassword()
+            settings.insert_one({"type":"account", "name":str(message.author), "pswd":pswd})
+            await message.channel.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
+            
+
 with open("TOKEN", "r") as f:
     client.run(f.read().strip())
