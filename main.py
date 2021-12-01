@@ -220,7 +220,7 @@ def remaining(name):
     acc = settings.find({"type":"access", "name":name})
     msg = ""
     for x in acc:
-        if x['mode'] != "admin":
+        if x['mode'] != "admin" and x['mode'] != "owner":
             total = getLen(x['mode'])
             elapsed = contests.compare(x['start'], contests.current_time())
             rem = total - elapsed
