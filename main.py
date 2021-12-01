@@ -623,7 +623,7 @@ async def on_message(message):
                 await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
             
             os.system("rm -r problemdata; rm data.zip")
-        elif str(message.content).lower().equals("-register"):
+        elif str(message.content).equals("-register"):
             if not str(message.channel).startswith("Direct Message with"):
                 await message.channel.send("Please use `-register` in a direct message with the bot.")
                 return
