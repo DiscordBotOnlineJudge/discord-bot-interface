@@ -426,7 +426,7 @@ async def on_message(message):
             judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
             msg = f.read()
-            await message.channel.send(msg + "\nTo see exact execution commands, visit https://dboj-problem-adding-web-app.jimmyliu3.repl.co/")
+            await message.channel.send(msg + "\nTo see exact execution commands, visit https://dboj.jimmyliu.dev/")
         elif str(message.content).startswith("-error"):
             f = open("errors.txt", "r")
             await message.channel.send("```\n" + f.read(5000) + "\n```")
@@ -454,7 +454,7 @@ async def on_message(message):
             await updateStatus()
             await message.channel.send("All servers' statuses are now set to available")
         elif str(message.content).startswith("-add"):
-            await message.channel.send("To add your own problem to the judge, visit this google doc: https://docs.google.com/document/d/1dC3KeeH4XU5Dl6ijnfIUP6wjhv2YWg0lSkpkgrRJJA0/edit?usp=sharing")
+            await message.channel.send("To add your own problem to the judge, visit this site: https://dboj.jimmyliu.dev/")
         elif str(message.content).startswith("-vote"):
             await message.channel.send("Vote for the Judge discord bot!\nDiscord Bot List: https://discordbotlist.com/bots/judge/upvote\ntop.gg: https://top.gg/bot/831963122448203776/vote\n\nThanks for your support!")
         elif str(message.content).startswith("-server"):
