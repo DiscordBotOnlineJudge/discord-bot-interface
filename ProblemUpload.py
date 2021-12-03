@@ -26,7 +26,7 @@ def uploadProblem(settings, storage_client, url, author):
     existingProblem = settings.find_one({"type":"problem", "name":params['name']})
 
     if not existingProblem is None:
-        if (not "author" in existingProblem) or author != existingProblem['author']:
+        if (not author in existingProblem['authors']):
             return "Error: problem name `" + params["name"] + "` already exists under another author"
         msg += "Problem with name `" + params["name"] + "` already exists. Editing problem and overwriting files.\n"
         settings.delete_one({"_id":existingProblem['_id']})
