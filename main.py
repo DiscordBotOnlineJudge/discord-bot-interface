@@ -313,6 +313,11 @@ async def on_message(message):
             problem = req['problem']
             lang = req['lang']
 
+            prev = settings.find_one({"type":"prev", "name":username, "problem":problem})
+            if not prev is None:
+                settings.delete_one({"_id":prev['_id']})
+            settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
+
             problm = settings.find_one({"type":"problem", "name":problem})
             judges = settings.find_one({"type":"judge", "status":0})
 
@@ -421,7 +426,26 @@ async def on_message(message):
                 return
 
             settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
-            await message.channel.send("Ok " + str(message.author) + ", now send your source code either as a message or attachment. If you would like, surround your code with backticks (`).")
+            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
+        elif str(message.content).startswith("-rs"):
+            arr = str(message.content).split()
+            prev = settings.find_one({"type":"prev", "name":str(message.author)})
+            if prev is None:
+                await message.channel.send("No previous submission found. Please type `-submit [problemName] [language]` to submit a submission.")
+                return
+
+            language = None
+            if len(arr) < 2:
+                settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":prev['lang'], "used":False})
+                language = prev['lang']
+            else:
+                lang = settings.find_one({"type":"lang", "name":arr[1]})
+                if lang is None:
+                    await message.channel.send("Judging Error: Language not Supported. Type `-langs` for a list of supported languages.")
+                    return
+                settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":arr[1], "used":False})
+                language = arr[1]
+            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + prev['problem'] "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
         elif str(message.content).split()[0].startswith("-lang"):
             judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
