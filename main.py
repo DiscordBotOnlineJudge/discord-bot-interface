@@ -313,9 +313,7 @@ async def on_message(message):
             problem = req['problem']
             lang = req['lang']
 
-            prev = settings.find_one({"type":"prev", "name":username, "problem":problem})
-            if not prev is None:
-                settings.delete_one({"_id":prev['_id']})
+            settings.delete_one({"type":"prev", "name":username})
             settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
 
             problm = settings.find_one({"type":"problem", "name":problem})
