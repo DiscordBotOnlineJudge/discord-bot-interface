@@ -434,6 +434,7 @@ async def on_message(message):
 
             if perms(settings.find_one({"type":"problem", "name":prev['problem']}), str(message.author)):
                 await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
+                return
 
             language = None
             if len(arr) < 2:
