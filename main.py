@@ -415,12 +415,12 @@ async def on_message(message):
 
             found = settings.find_one({"type":"problem", "name":problem})
             if found is None or (perms(found, str(message.author))):
-                await message.channel.send("Judging Error: Problem not found. Refer to `-problems` or the contest instructions for problem codes.")
+                await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
                 return
 
             lang = settings.find_one({"type":"lang", "name":language})
             if lang is None:
-                await message.channel.send("Judging Error: Language not Supported. Type `-langs` for a list of supported languages.")
+                await message.channel.send("Judging Error: Language not Found. Type `-langs` for a list of supported languages.")
                 return
 
             settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
@@ -431,6 +431,9 @@ async def on_message(message):
             if prev is None:
                 await message.channel.send("No previous submission found. Please type `-submit [problemName] [language]` to submit a submission.")
                 return
+
+            if perms(settings.find_one({"type":"problem", "name":prev['problem']}), str(message.author)):
+                await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
 
             language = None
             if len(arr) < 2:
