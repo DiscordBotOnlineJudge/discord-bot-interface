@@ -426,7 +426,7 @@ async def on_message(message):
                 return
 
             settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
-            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
+            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
         elif str(message.content).startswith("-rs"):
             arr = str(message.content).split()
             prev = settings.find_one({"type":"prev", "name":str(message.author)})
@@ -445,7 +445,7 @@ async def on_message(message):
                     return
                 settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":arr[1], "used":False})
                 language = arr[1]
-            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + prev['problem'] "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
+            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + prev['problem'] + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
         elif str(message.content).split()[0].startswith("-lang"):
             judging.get_file(storage_client, "Languages.txt", "Languages.txt")
             f = open("Languages.txt", "r")
