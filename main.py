@@ -228,13 +228,16 @@ def remaining(name):
     msg = ""
     for x in acc:
         if x['mode'] != "admin" and x['mode'] != "owner":
-            total = getLen(x['mode'])
-            elapsed = contests.compare(x['start'], contests.current_time())
-            rem = total - elapsed
-            if rem <= 0:
-                msg += "Time's up! `" + name + "`'s participation in contest `" + x['mode'] + "` has ended.\n"
-            else:
-                msg += "`" + name + "` still has `" + amt(rem) + "` left on contest `" + x['mode'] + "`\n"
+            try:
+                total = getLen(x['mode'])
+                elapsed = contests.compare(x['start'], contests.current_time())
+                rem = total - elapsed
+                if rem <= 0:
+                    msg += "Time's up! `" + name + "`'s participation in contest `" + x['mode'] + "` has ended.\n"
+                else:
+                    msg += "`" + name + "` still has `" + amt(rem) + "` left on contest `" + x['mode'] + "`\n"
+            except:
+                pass
     if len(msg) == 0:
         return "`" + name + "` has not joined any contests"
     return msg
