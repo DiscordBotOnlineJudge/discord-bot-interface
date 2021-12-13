@@ -36,6 +36,9 @@ def uploadProblem(settings, storage_client, url, author):
         contest = params['contest']
     except:
         pass
+
+    if contest is None:
+        contest = ""
     
     authors = params['authors']
     if not author in authors:
