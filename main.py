@@ -434,7 +434,7 @@ async def on_message(message):
                 return
 
             judge = 0
-            if not settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None and len(arr > 3):
+            if not settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None and len(arr) > 3:
                 try:
                     judge = int(arr[3])
                 except:
