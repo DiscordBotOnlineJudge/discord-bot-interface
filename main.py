@@ -321,8 +321,8 @@ async def on_message(message):
 
             problm = settings.find_one({"type":"problem", "name":problem})
 
-            judges = None
-            if "judge" in req and settings.find_one({"type":"judge", "num":req['judge']})['status'] == 0:
+            judges = settings.find_one({"type":"judge", "num":req['judge']})
+            if "judge" in req and not judges is None and judges['status'] == 0:
                 judges = settings.find_one({"type":"judge", "num":req['judge']})
             else:
                 judges = settings.find_one({"type":"judge", "status":0})
