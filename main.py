@@ -320,12 +320,7 @@ async def on_message(message):
             settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
 
             problm = settings.find_one({"type":"problem", "name":problem})
-
-            judges = None
-            if "judge" in req and settings.find_one({"type":"judge", "num":req['judge']})['status'] == 0:
-                judges = settings.find_one({"type":"judge", "num":req['judge']})
-            else:
-                judges = settings.find_one({"type":"judge", "status":0})
+            judges = settings.find_one({"type":"judge", "status":0})
 
             if judges is None:
                 await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
@@ -414,14 +409,12 @@ async def on_message(message):
             await message.channel.send("All published problems:\n```\n" + out + "```")
 
         elif str(message.content).split()[0].startswith("-sub"):
-            arr = str(message.content).split()
-
-            if len(arr) < 3:
+            if len(str(message.content).split()) != 3:
                 await message.channel.send("Incorrect formatting for submit command. Please type `-submit [problemName] [language]` and wait for the judge to prompt you for your source code.")
                 return
 
-            problem = arr[1].lower()
-            language = arr[2].lower()
+            problem = str(message.content).split()[1].lower()
+            language = str(message.content).split()[2].lower()
 
             found = settings.find_one({"type":"problem", "name":problem})
             if found is None or (perms(found, str(message.author))):
@@ -433,14 +426,7 @@ async def on_message(message):
                 await message.channel.send("Judging Error: Language not Found. Type `-langs` for a list of supported languages.")
                 return
 
-            judge = 0
-            if not settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None and len(arr > 3):
-                try:
-                    judge = int(arr[3])
-                except:
-                    pass
-
-            settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False, "judge":judge})
+            settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False})
             await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
         elif str(message.content).startswith("-rs"):
             arr = str(message.content).split()
