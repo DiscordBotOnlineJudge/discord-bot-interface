@@ -383,7 +383,9 @@ async def on_message(message):
             settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
         except Exception as e:
             await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
-            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
         settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
         await updateStatus()
