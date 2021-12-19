@@ -316,26 +316,9 @@ async def handleSubmission(message):
 
                 problm = settings.find_one({"type":"problem", "name":problem})
 
-                judges = None
-                if first and "judge" in req:
-                    judges = settings.find_one({"type":"judge", "num":req['judge']})
-                if first and "judge" in req and not judges is None and judges['status'] == 0:
-                    judges = settings.find_one({"type":"judge", "num":req['judge']})
-                else:
-                    judges = settings.find_one({"type":"judge", "status":0})
-
-                if judges is None:
-                    settings.update_one({"_id":req['_id']}, {"$set":{"type":"queued", "channel":message.channel.id}})
-                    await message.channel.send("Judges are currently busy. Submission has been queued.")
-                    return True
-
-                settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
-                settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
-                settings.delete_one({"_id":req['_id']})
-
                 await updateStatus()
 
-                avail = judges['num']
+                
 
                 cleaned = ""
                 attachments = False
@@ -350,8 +333,27 @@ async def handleSubmission(message):
                         # Clean up code from all backticks
                         cleaned = clean(str(message.content))
 
+                judges = None
+                if first and "judge" in req:
+                    judges = settings.find_one({"type":"judge", "num":req['judge']})
+                if first and "judge" in req and not judges is None and judges['status'] == 0:
+                    judges = settings.find_one({"type":"judge", "num":req['judge']})
+                else:
+                    judges = settings.find_one({"type":"judge", "status":0})
+
+                if judges is None:
+                    settings.update_one({"_id":req['_id']}, {"$set":{"type":"queued", "channel":message.channel.id, "cleaned":cleaned}})
+                    await message.channel.send("Submission queued: Waiting for a suitable judge to process your submission. Please wait a few seconds.")
+                    return True
+
+                avail = judges['num']
+
+                settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
+                settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
+                settings.delete_one({"_id":req['_id']})
+
                 settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
-                await channel.send("Now judging your program. Please wait a few seconds.")
+                await channel.send("Now judging your program. See execution results below.")
 
                 manager = Manager()
                 return_dict = manager.dict()
@@ -415,7 +417,7 @@ async def on_message(message):
                 settings.insert_one({"type":"use", "author":str(message.author), "message":str(message.content)})
                 break
 
-    if not handleSubmission(message):
+    if not await handleSubmission(message):
         if len(str(message.content)) <= 0:
             return
 
