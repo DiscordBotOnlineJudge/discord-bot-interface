@@ -352,6 +352,8 @@ async def handleSubmission(message):
                 settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
                 settings.delete_one({"_id":req['_id']})
 
+                await updateStatus()
+
                 settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
                 await channel.send("Now judging your program. See execution results below.")
 
