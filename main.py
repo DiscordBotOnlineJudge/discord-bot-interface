@@ -286,10 +286,117 @@ async def on_ready():
     status = await stat.send("**Current live judge server statuses:**\n```" + getStatus() + "\n```")
 
     await sendLiveScoreboards()
-
-    #chnl = client.get_channel(846768989211197510)
-    #await chnl.send("Judge has connected to Discord!")
     print(f'{client.user} has connected to Discord!')
+
+async def handleSubmission(message):
+    first = True
+    while True:
+        req = None
+        channel = None
+        author = None
+        if first:
+            req = settings.find_one({"type":"req", "user":str(message.author), "used":False})
+            channel = message.channel
+            author = str(message.author)
+        else:
+            req = settings.find_one({"type":"queued"})
+            channel = client.get_channel(req['channel'])
+            author = req['user']
+
+        if not str(message.content).startswith("-") and (not req is None):
+            try:
+                ct = contests.current_time()
+
+                username = req['user']
+                problem = req['problem']
+                lang = req['lang']
+
+                settings.delete_one({"type":"prev", "name":username})
+                settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
+
+                problm = settings.find_one({"type":"problem", "name":problem})
+
+                judges = None
+                if first and "judge" in req:
+                    judges = settings.find_one({"type":"judge", "num":req['judge']})
+                if first and "judge" in req and not judges is None and judges['status'] == 0:
+                    judges = settings.find_one({"type":"judge", "num":req['judge']})
+                else:
+                    judges = settings.find_one({"type":"judge", "status":0})
+
+                if judges is None:
+                    settings.update_one({"_id":req['_id']}, {"$set":{"type":"queued", "channel":message.channel.id}})
+                    await message.channel.send("Judges are currently busy. Submission has been queued.")
+                    return True
+
+                settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
+                settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
+                settings.delete_one({"_id":req['_id']})
+
+                await updateStatus()
+
+                avail = judges['num']
+
+                cleaned = ""
+                attachments = False
+
+                if not first:
+                    cleaned = req['cleaned']
+                else:
+                    if message.attachments:
+                        cleaned = message.attachments[0].url
+                        attachments = True
+                    else:
+                        # Clean up code from all backticks
+                        cleaned = clean(str(message.content))
+
+                settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
+                await channel.send("Now judging your program. Please wait a few seconds.")
+
+                manager = Manager()
+                return_dict = manager.dict()
+                rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, return_dict,))
+                rpc.start()
+
+                msgContent = "```Waiting for response from Judge " + str(avail) + "```"
+                curmsg = await channel.send(msgContent)
+
+                while rpc.is_alive():
+                    newcontent = settings.find_one({"type":"judge", "num":avail})['output']
+                    if newcontent != msgContent and len(newcontent) > 0:
+                        msgContent = newcontent
+                        try:
+                            await curmsg.edit(content = msgContent)
+                        except:
+                            print("Edited empty message")
+                    await asyncio.sleep(0.5)
+
+                try:
+                    finalscore = return_dict['finalscore']
+                    await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
+                    if finalscore == 100:
+                        addToProfile(author, problem)
+                    if len(problm['contest']) > 0 and finalscore >= 0:
+                        await updateScore(problm['contest'], problem, author, finalscore, ct)
+                except Exception as e:
+                    await channel.send("Judging error: Fatal error occured on Judge Server " + str(avail) + " while grading solution")
+                    print(e)
+                
+                settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
+            except Exception as e:
+                await channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+
+            settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
+            await updateStatus()
+
+            first = False
+        else:
+            break
+
+    return not first
 
 
 @client.event
@@ -301,99 +408,14 @@ async def on_message(message):
     global running
     global status
     global storage_client
-    req = settings.find_one({"type":"req", "user":str(message.author), "used":False})
-
+    
     if str(message.content).startswith("-"):
         for x in settings.find({"type":"command"}):
             if str(message.content).startswith(x['name']):
                 settings.insert_one({"type":"use", "author":str(message.author), "message":str(message.content)})
                 break
 
-    if not str(message.content).startswith("-") and (not req is None):
-        try:
-            ct = contests.current_time()
-
-            username = req['user']
-            problem = req['problem']
-            lang = req['lang']
-
-            settings.delete_one({"type":"prev", "name":username})
-            settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
-
-            problm = settings.find_one({"type":"problem", "name":problem})
-
-            judges = None
-            if "judge" in req:
-                judges = settings.find_one({"type":"judge", "num":req['judge']})
-            if "judge" in req and not judges is None and judges['status'] == 0:
-                judges = settings.find_one({"type":"judge", "num":req['judge']})
-            else:
-                judges = settings.find_one({"type":"judge", "status":0})
-
-            if judges is None:
-                await message.channel.send("All of the judge's grading servers are currently in use. Please re-enter your source code in a few seconds.\nType `-status` to see the current judge statuses")
-                return
-
-            settings.update_one({"_id":req['_id']}, {"$set":{"used":True}})
-            settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
-            settings.delete_one({"_id":req['_id']})
-
-            await updateStatus()
-
-            avail = judges['num']
-
-            cleaned = ""
-            attachments = False
-            if message.attachments:
-                cleaned = message.attachments[0].url
-                attachments = True
-            else:
-                # Clean up code from all backticks
-                cleaned = clean(str(message.content))
-
-            settings.insert_one({"type":"use", "author":str(message.author), "message":cleaned})
-            await message.channel.send("Now judging your program. Please wait a few seconds.")
-
-            manager = Manager()
-            return_dict = manager.dict()
-            rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, return_dict,))
-            rpc.start()
-
-            msgContent = "```Waiting for response from Judge " + str(avail) + "```"
-            curmsg = await message.channel.send(msgContent)
-
-            while rpc.is_alive():
-                newcontent = settings.find_one({"type":"judge", "num":avail})['output']
-                if newcontent != msgContent and len(newcontent) > 0:
-                    msgContent = newcontent
-                    try:
-                        await curmsg.edit(content = msgContent)
-                    except:
-                        print("Edited empty message")
-                await asyncio.sleep(0.5)
-
-            try:
-                finalscore = return_dict['finalscore']
-                await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
-                if finalscore == 100:
-                    addToProfile(str(message.author), problem)
-                if len(problm['contest']) > 0 and finalscore >= 0:
-                    await updateScore(problm['contest'], problem, str(message.author), finalscore, ct)
-            except Exception as e:
-                await message.channel.send("Judging error: Fatal error occured on Judge Server " + str(avail) + " while grading solution")
-                print(e)
-            
-            settings.update_one({"_id":judges['_id']}, {"$set":{"output":""}})
-        except Exception as e:
-            await message.channel.send("Judging error: Fatal error occured while grading solution\n```" + str(e) + "\n```")
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-
-        settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
-        await updateStatus()
-
-    else:
+    if not handleSubmission(message):
         if len(str(message.content)) <= 0:
             return
 
