@@ -325,6 +325,7 @@ async def handleSubmission(message):
 
                 if not first:
                     cleaned = req['cleaned']
+                    attachments = req['attachments']
                 else:
                     if message.attachments:
                         cleaned = message.attachments[0].url
@@ -342,7 +343,7 @@ async def handleSubmission(message):
                     judges = settings.find_one({"type":"judge", "status":0})
 
                 if judges is None:
-                    settings.update_one({"_id":req['_id']}, {"$set":{"type":"queued", "channel":message.channel.id, "cleaned":cleaned}})
+                    settings.update_one({"_id":req['_id']}, {"$set":{"type":"queued", "channel":message.channel.id, "cleaned":cleaned, "attachments":attachments}})
                     await message.channel.send("Submission queued: Waiting for a suitable judge to process your submission. Please wait a few seconds.")
                     return True
 
