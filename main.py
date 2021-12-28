@@ -270,7 +270,7 @@ async def on_ready():
     stc = storage.Client()
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
-    pswd = open("PASSWORD", "r").read().strip()
+    pswd = os.getenv("PASSWORD")
 
     cluster = MongoClient("mongodb+srv://onlineuser:$" + pswd + "@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
     db = cluster['database']
@@ -709,6 +709,4 @@ async def on_message(message):
             settings.insert_one({"type":"account", "name":str(message.author), "pswd":pswd})
             await message.channel.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
             
-
-with open("TOKEN", "r") as f:
-    client.run(f.read().strip())
+client.run(os.getenv("TOKEN"))
