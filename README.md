@@ -67,6 +67,7 @@ num: [judge number]
 status: 0
 output: ""
 ip: "[the ip address of the judge server or localhost]"
+path: [full path of the judge-server repository in the judge server (e.g. "/home/ubuntu/judge-server")]
 port: [the port number that the judge server is listening on]
 description: [a description of the judge server]
 runtimes: [description of runtimes of the judge server]
