@@ -36,7 +36,45 @@ export TOKEN=[your discord bot token]
 export PASSWORD=[your full mongodb connection string]
 ```
 
-### 4. Start the Discord bot server using python
+### 4. Paste your google cloud credentials
+Create a service account in your google cloud that **only** gives access to storage buckets:
+```
+storage.buckets.get
+storage.objects.create
+storage.objects.delete
+storage.objects.get
+```
+Paste the key json into a file called `google-service-key.json`.
+
+### 5. Setting up mongodb and google cloud storage
+Pymongo needs to have pre-made registers for languages and judges.
+The language register should look like this:
+```
+_id: [any object id]
+type: "lang"
+name: [language name]
+compl: [command to compile the file or leave empty string for non-compiled]
+run: [command to execute the code]
+filename: [the name of the file to save to]
+id: [language id from 0 to 2 based on speed of language (0 is slow, 2 is fast)]
+```
+
+The judge register should look like this. Instructions to create a judge server are [here](https://github.com/DiscordBotOnlineJudge/judge-server).
+```
+_id: [any object id]
+type: "judge"
+num: [judge number]
+status: 0
+output: ""
+ip: "[the ip address of the judge server or localhost]"
+port: [the port number that the judge server is listening on]
+description: [a description of the judge server]
+runtimes: [description of runtimes of the judge server]
+```
+
+The google-cloud storage bucket should be named `discord-bot-oj-file-storage`. The bot will add its own folders as you add problems and contests.
+
+### 6. Start the Discord bot server using python
 ```bash
 python3 main.py
 ```
