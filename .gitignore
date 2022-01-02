@@ -4,3 +4,4 @@ PymongoCommands.py
 dboj.service
 judge.service
 lang.yaml
+default.conf

@@ -271,8 +271,8 @@ async def on_ready():
     storage_client = stc.get_bucket('discord-bot-oj-file-storage')
 
     pswd = os.getenv("PASSWORD")
-
-    cluster = MongoClient("mongodb+srv://onlineuser:$" + pswd + "@discord-bot-online-judg.7gm4i.mongodb.net/database?retryWrites=true&w=majority")
+    cluster = MongoClient(pswd)
+    
     db = cluster['database']
     global settings
     settings = db['settings']
