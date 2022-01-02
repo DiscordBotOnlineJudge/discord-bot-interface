@@ -2,8 +2,8 @@ pip==21.3.1
 pymongo==4.0
 dnspython==2.1.0
 google-cloud-storage==1.43.0
-pytz=2016.10
-PyYAML=6.0
-discord=1.7.3
-grpcio=1.42.0
-grpcio-tools=1.42.0
+pytz==2016.10
+PyYAML==6.0
+discord==1.7.3
+grpcio==1.42.0
+grpcio-tools==1.42.0
