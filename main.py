@@ -17,6 +17,8 @@ import string
 import grpc
 import judge_pb2
 import judge_pb2_grpc
+import uuid
+import hashlib
 import ProblemUpload
 from multiprocessing import Process
 from multiprocessing import Manager
@@ -260,6 +262,14 @@ def runSubmission(judges, username, cleaned, lang, problm, attachments, return_d
         response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments))
         finalscore = response.finalScore
         return_dict['finalscore'] = finalscore
+
+def hashCode(password):
+    salt = uuid.uuid4().hex
+    return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+
+def check_equal(hashed_password, user_password):
+    password, salt = hashed_password.split(':')
+    return password == hashlib.sha256(salt.encode() + user_password.encode()).hexdigest()
 
 @client.event
 async def on_ready():
@@ -706,7 +716,7 @@ async def on_message(message):
                 await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
                 return
             pswd = generatePassword()
-            settings.insert_one({"type":"account", "name":str(message.author), "pswd":pswd})
+            settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
             await message.channel.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
             
 client.run(os.getenv("TOKEN"))
