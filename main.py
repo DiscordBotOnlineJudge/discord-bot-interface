@@ -73,24 +73,6 @@ def perms(found, author):
         return False # Has contest participant perms
     return (not found['published']) or (found['status'] != "s")
 
-def getStatus():
-    msg = ""
-    for x in settings.find({"type":"judge"}):
-        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']).ljust(23)
-        if x['status'] != 2:
-            msg += "(" + x['runtimes'] + ")"
-        msg += "\n"
-    return msg
-
-async def updateStatus():
-    msg = getStatus()
-    global status
-    try:
-        await status.edit(content = ("**Current live judge server statuses:**\n```" + getStatus() + "\n```"))
-    except:
-        print("Failed to update live status")
-        return
-
 def amt(len):
     h = len // 3600
     len %= 3600
@@ -187,9 +169,6 @@ def getScoreboard(contest):
         
     return msg + "```"
 
-async def live_scoreboard(contest):
-    pass
-
 def get_bonus(rem, pts):
     return (pts * rem) // 30000
 
@@ -218,7 +197,6 @@ async def updateScore(contest, problem, user, score, ct):
     time_bonus[num] = max(time_bonus[num], get_bonus(contest_len - elapsed, score))
 
     settings.update_one({"_id":post['_id']}, {"$set":{"solved":arr, "penalty":penalty, "time-bonus":time_bonus}})
-    await live_scoreboard(contest)
 
 def remaining(name):
     acc = settings.find({"type":"access", "name":name})
@@ -284,11 +262,6 @@ async def on_ready():
     global running
     running = True
 
-    global status
-    stat = client.get_channel(851468547414294568)
-    await stat.purge(limit = 100)
-    status = await stat.send("**Current live judge server statuses:**\n```" + getStatus() + "\n```")
-
     print(f'{client.user} has connected to Discord!')
 
 async def handleSubmission(message):
@@ -318,8 +291,6 @@ async def handleSubmission(message):
                 settings.insert_one({"type":"prev", "name":username, "problem":problem, "lang":lang})
 
                 problm = settings.find_one({"type":"problem", "name":problem})
-
-                await updateStatus()
 
                 
 
@@ -356,7 +327,7 @@ async def handleSubmission(message):
                 settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
                 settings.delete_one({"_id":req['_id']})
 
-                await updateStatus()
+                
 
                 settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
                 await channel.send("Now judging your program. See execution results below.")
@@ -398,7 +369,7 @@ async def handleSubmission(message):
                 print(exc_type, fname, exc_tb.tb_lineno)
 
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
-            await updateStatus()
+            
 
             first = False
         else:
@@ -529,7 +500,7 @@ async def on_message(message):
                 return
 
             settings.update_many({"type":"judge", "status":1}, {"$set":{"status":0}})
-            await updateStatus()
+            
             await message.channel.send("All servers' statuses are now set to available")
         elif str(message.content).startswith("-add"):
             await message.channel.send("To add your own problem to the judge, visit this site: <https://dboj.jimmyliu.dev/>")
@@ -553,19 +524,19 @@ async def on_message(message):
         elif str(message.content).startswith("-on"):
             j = int(str(message.content).split()[1])
             settings.update_one({"type":"judge", "num":j}, {"$set":{"status":0}})
-            await updateStatus()
+            
             await message.channel.send("Judge " + str(j) + " is now online")
         elif str(message.content).startswith("-off"):
             j = int(str(message.content).split()[1])
             settings.update_one({"type":"judge", "num":j}, {"$set":{"status":2}})
-            await updateStatus()
+            
             await message.channel.send("Judge " + str(j) + " is now offline")
         elif str(message.content) == "-status":
             msg = getStatus()
             await message.channel.send("**Current Judge Server Statuses:**\n```\n" + msg + "```")
         elif str(message.content).startswith("-reset"):
             settings.update_many({"type":"judge"}, {"$set":{"status":0}})
-            await updateStatus()
+            
             await message.channel.send("All online judging servers successfully reset.\nType `-status` to see current judge statuses")
         elif str(message.content).startswith("-invite"):
             await message.channel.send("Invite the online judge discord bot to your own server with this link: \nhttps://discord.com/api/oauth2/authorize?client_id=831963122448203776&permissions=2148005952&scope=bot")
@@ -606,7 +577,6 @@ async def on_message(message):
             time_bonus = [0] * (cont['problems'] + 1)
 
             settings.insert_one({"type":"access", "mode":arr[1], "name":str(message.author), "solved":solved, "penalty":penalties, "time-bonus":time_bonus, "start":contests.current_time(), "taken":0})
-            await live_scoreboard(arr[1])
 
             await message.channel.send("Successfully joined contest `" + arr[1] + "`! You have " + amt(cont['len']) + " to complete the contest. Good Luck!\n")
             await asyncio.sleep(1)
@@ -646,17 +616,6 @@ async def on_message(message):
                 m += "No upcoming contests\n"
             m += "```"
             await message.channel.send(m)
-        elif str(message.content).startswith("-refresh"):
-            arr = str(message.content).split()
-            if len(arr) < 2:
-                await message.channel.send("Incorrect formatting for refresh command. Use `-refresh [contestCode]`")
-                return
-
-            for i in range(1, len(arr)):
-                await live_scoreboard(arr[i])
-                
-            await updateStatus()
-            await message.channel.send("Refreshed live scoreboard and live judge status")
         elif str(message.content).startswith("-console"):
             if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
                 await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
