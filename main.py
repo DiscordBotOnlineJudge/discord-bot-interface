@@ -82,6 +82,15 @@ def amt(len):
 
     return "{hh} hours, {mm} minutes, and {ss} seconds".format(hh = h, mm = m, ss = s)
 
+def getStatus():
+    msg = ""
+    for x in settings.find({"type":"judge"}):
+        msg += "Judge #" + str(x['num']) + ": " + decode(x['status']).ljust(23)
+        if x['status'] != 2:
+            msg += "(" + x['runtimes'] + ")"
+        msg += "\n"
+    return msg
+
 def profile(name):
     prof = settings.find_one({"type":"profile", "name":name})
     if prof is None:
