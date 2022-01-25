@@ -664,11 +664,11 @@ async def on_message(message):
                 if settings.find_one({"type":"account", "name":str(message.author)}) is not None:
                     await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
                     return
-                if message.channel.type != "dm":
+                if message.channel.type != discord.ChannelType.private:
                     await message.reply("Login details have been DM'd to you.")
                 pswd = generatePassword()
                 settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
-                await message.author.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
+                await message.author.send("Your account has been successfully created! Your password is ||`" + pswd + "`||. Please don't share it with anyone.")
     except Exception as e:
         await message.channel.send("Fatal error occurred:\n```\n" + str(e) + "\n```")
             
