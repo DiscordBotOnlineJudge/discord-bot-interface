@@ -670,6 +670,11 @@ async def on_message(message):
                 settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
                 await message.author.send("Your account has been successfully created! Your password is ||`" + pswd + "`||. Please don't share it with anyone.")
     except Exception as e:
-        await message.channel.send("Fatal error occurred:\n```\n" + str(e) + "\n```")
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        print(e)
+        
+        await message.channel.send("Fatal error occurred:\n```\n" + str(e) + " " + str(exc_type) + " " + fname + " " + exc_tb.tb_lineno + "\n```")
             
 client.run(os.getenv("TOKEN"))
