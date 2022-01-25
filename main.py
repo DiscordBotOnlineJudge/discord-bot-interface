@@ -666,7 +666,6 @@ async def on_message(message):
                     return
                 if message.channel.type != "dm":
                     await message.reply("Login details have been DM'd to you.")
-                    return
                 pswd = generatePassword()
                 settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
                 await message.author.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
