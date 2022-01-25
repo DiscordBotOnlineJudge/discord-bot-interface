@@ -403,271 +403,274 @@ async def on_message(message):
                 settings.insert_one({"type":"use", "author":str(message.author), "message":str(message.content)})
                 break
 
-    if not await handleSubmission(message):
-        if len(str(message.content)) <= 0:
-            return
-
-        if message.content == "-help":
-            await message.channel.send("**Here are some of my commands:**")
-            f = open("commands.txt", "r")
-            await message.channel.send("```" + str(f.read()) + "```")
-        elif message.content.startswith("-problem"):
-            w1 = 14
-            out = "Problem Name".ljust(w1) + "Difficulty\n"
-            out += "-----------------------------------------------\n"
-            
-            arr = sorted([(x['points'], x['name']) for x in settings.find({"type":"problem", "published":True})], key = cmp_to_key(cmpProblem))
-            
-            for x in arr:
-                out += x[1].ljust(w1) + (str(x[0]) + " points") + "\n"
-
-            out += "\n"
-
-            f = open("problems.txt", "r")
-            out += f.read()
-            f.close()
-            await message.channel.send("All published problems:\n```\n" + out + "```")
-
-        elif str(message.content).split()[0].startswith("-sub"):
-            arr = str(message.content).split()
-
-            if len(arr) < 3:
-                await message.channel.send("Incorrect formatting for submit command. Please type `-submit [problemName] [language]` and wait for the judge to prompt you for your source code.")
+    try:
+        if not await handleSubmission(message):
+            if len(str(message.content)) <= 0:
                 return
 
-            problem = arr[1].lower()
-            language = arr[2].lower()
+            if message.content == "-help":
+                await message.channel.send("**Here are some of my commands:**")
+                f = open("commands.txt", "r")
+                await message.channel.send("```" + str(f.read()) + "```")
+            elif message.content.startswith("-problem"):
+                w1 = 14
+                out = "Problem Name".ljust(w1) + "Difficulty\n"
+                out += "-----------------------------------------------\n"
+                
+                arr = sorted([(x['points'], x['name']) for x in settings.find({"type":"problem", "published":True})], key = cmp_to_key(cmpProblem))
+                
+                for x in arr:
+                    out += x[1].ljust(w1) + (str(x[0]) + " points") + "\n"
 
-            found = settings.find_one({"type":"problem", "name":problem})
-            if found is None or (perms(found, str(message.author))):
-                await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
-                return
+                out += "\n"
 
-            lang = settings.find_one({"type":"lang", "name":language})
-            if lang is None:
-                await message.channel.send("Judging Error: Language not Found. Type `-langs` for a list of supported languages.")
-                return
+                f = open("problems.txt", "r")
+                out += f.read()
+                f.close()
+                await message.channel.send("All published problems:\n```\n" + out + "```")
 
-            judge = 0
-            if not settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None and len(arr) > 3:
-                try:
-                    judge = int(arr[3])
-                except:
-                    pass
+            elif str(message.content).split()[0].startswith("-sub"):
+                arr = str(message.content).split()
 
-            settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False, "judge":judge})
-            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
-        elif str(message.content).startswith("-rs"):
-            arr = str(message.content).split()
-            prev = settings.find_one({"type":"prev", "name":str(message.author)})
-            if prev is None:
-                await message.channel.send("No previous submission found. Please type `-submit [problemName] [language]` to submit a submission.")
-                return
-
-            if perms(settings.find_one({"type":"problem", "name":prev['problem']}), str(message.author)):
-                await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
-                return
-
-            language = None
-            if len(arr) < 2:
-                settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":prev['lang'], "used":False})
-                language = prev['lang']
-            else:
-                lang = settings.find_one({"type":"lang", "name":arr[1]})
-                if lang is None:
-                    await message.channel.send("Judging Error: Language not Supported. Type `-langs` for a list of supported languages.")
+                if len(arr) < 3:
+                    await message.channel.send("Incorrect formatting for submit command. Please type `-submit [problemName] [language]` and wait for the judge to prompt you for your source code.")
                     return
-                settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":arr[1], "used":False})
-                language = arr[1]
-            await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + prev['problem'] + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
-        elif str(message.content).split()[0].startswith("-lang"):
-            judging.get_file(storage_client, "Languages.txt", "Languages.txt")
-            f = open("Languages.txt", "r")
-            msg = f.read()
-            await message.channel.send(msg + "\nTo see exact execution commands, visit <https://dboj.jimmyliu.dev/>")
-        elif str(message.content).startswith("-error"):
-            f = open("errors.txt", "r")
-            await message.channel.send("```\n" + f.read(5000) + "\n```")
-        elif str(message.content).split()[0] == "-open":
-            # perm = settings.find_one({"type":"access", "name":str(message.author)})
-            prob = settings.find_one({"type":"problem", "name":str(message.content).split()[1].lower()})
 
-            if prob is None or perms(prob, str(message.author)):
-                await message.channel.send("Error: Problem not found")
-                return
+                problem = arr[1].lower()
+                language = arr[2].lower()
 
-            try:
-                judging.get_file(storage_client, "ProblemStatements/" + prob['name'] + ".txt", "ProblemStatement.txt")
-                ps = open("ProblemStatement.txt", "r")
-                st = ps.read()
-                await message.channel.send(st)
-            except Exception as e:
-                await message.channel.send("An error occured while retrieving the problem statement:\n```" + str(e) + "\n```")
-        elif str(message.content).split()[0] == "-reset":
-            if str(message.author) != "jiminycricket#2701":
-                await message.channel.send("Sorry, you do not have authorized access to this command.")
-                return
+                found = settings.find_one({"type":"problem", "name":problem})
+                if found is None or (perms(found, str(message.author))):
+                    await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
+                    return
 
-            settings.update_many({"type":"judge", "status":1}, {"$set":{"status":0}})
-            
-            await message.channel.send("All servers' statuses are now set to available")
-        elif str(message.content).startswith("-add"):
-            await message.channel.send("To add your own problem to the judge, visit this site: <https://dboj.jimmyliu.dev/>")
-        elif str(message.content).startswith("-vote"):
-            await message.channel.send("Vote for the Judge discord bot!\nDiscord Bot List: <https://discordbotlist.com/bots/judge/upvote>\ntop.gg: <https://top.gg/bot/831963122448203776/vote>\n\nThanks for your support!")
-        elif str(message.content).startswith("-server"):
-            msg = "Discord bot online judge is currently in " + str(len(client.guilds)) + " servers!"
-            if str(message.channel) == "Direct Message with jiminycricket#2701":
-                msg += "\n```\n"
-                for x in client.guilds:
-                    msg += str(x) + "\n"
-                await message.channel.send(msg + "```")
-            else:
-                await message.channel.send(msg)
-        elif str(message.content).split()[0] == "-users":
-            if str(message.channel) != "Direct Message with jiminycricket#2701":
-                return
-            f = open("users.txt", "r")
-            await message.channel.send("```\n" + f.read() + "```")
-            f.close()
-        elif str(message.content).startswith("-on"):
-            j = int(str(message.content).split()[1])
-            settings.update_one({"type":"judge", "num":j}, {"$set":{"status":0}})
-            
-            await message.channel.send("Judge " + str(j) + " is now online")
-        elif str(message.content).startswith("-off"):
-            j = int(str(message.content).split()[1])
-            settings.update_one({"type":"judge", "num":j}, {"$set":{"status":2}})
-            
-            await message.channel.send("Judge " + str(j) + " is now offline")
-        elif str(message.content) == "-status":
-            msg = getStatus()
-            await message.channel.send("**Current Judge Server Statuses:**\n```\n" + msg + "```")
-        elif str(message.content).startswith("-reset"):
-            settings.update_many({"type":"judge"}, {"$set":{"status":0}})
-            
-            await message.channel.send("All online judging servers successfully reset.\nType `-status` to see current judge statuses")
-        elif str(message.content).startswith("-invite"):
-            await message.channel.send("Invite the online judge discord bot to your own server with this link: \nhttps://discord.com/api/oauth2/authorize?client_id=831963122448203776&permissions=2148005952&scope=bot")
-        elif str(message.content).startswith("-cancel"):
-            settings.delete_many({"type":"req"})
-            await message.channel.send("Successfully cancelled all active submission requests")
-        elif str(message.content) == "-sigterm":
-            running = False # set terminate signal
-            await message.channel.send("Attempting to terminate processes.")
-        elif str(message.content) == "-sigkill":
-            await message.channel.send("Killing process signal using system exiter.")
-            exit(0) # Kill using system exit function
-        elif str(message.content) == "-restart":
-            running = True # Attempt to restart process
-            await message.channel.send("Restarting judge.")
-        elif str(message.content).startswith("-join"):
-            if not (str(message.channel).startswith("ticket-") or str(message.channel).endswith("-channel")):
-                await message.channel.send("Please join contests in a private channel with the bot. Head to <#855868243855147030> to create one.")
-                return
+                lang = settings.find_one({"type":"lang", "name":language})
+                if lang is None:
+                    await message.channel.send("Judging Error: Language not Found. Type `-langs` for a list of supported languages.")
+                    return
 
-            arr = str(message.content).split()
-            if len(arr) != 2:
-                await message.channel.send("Incorrect formatting for join command. Use `-join [contestCode]` to join a contest")
-                return
-            cont = settings.find_one({"type":"contest", "name":arr[1].lower()})
-            if cont is None:
-                await message.channel.send("Error: Contest not found")
-                return
-            if (not contests.date(cont['start'], cont['end'], contests.current_time())):
-                await message.channel.send("This contest is not currently active. Type `-up` to see upcoming contest times.")
-                return
-            if not settings.find_one({"type":"access", "mode":arr[1], "name":str(message.author)}) is None:
-                await message.channel.send("You already joined this contest!")
-                return
+                judge = 0
+                if not settings.find_one({"type":"access", "mode":"admin", "name":str(message.author)}) is None and len(arr) > 3:
+                    try:
+                        judge = int(arr[3])
+                    except:
+                        pass
 
-            solved = [0] * (cont['problems'] + 1)
-            penalties = [0] * (cont['problems'] + 1)
-            time_bonus = [0] * (cont['problems'] + 1)
+                settings.insert_one({"type":"req", "user":str(message.author), "problem":problem, "lang":language, "used":False, "judge":judge})
+                await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + problem + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
+            elif str(message.content).startswith("-rs"):
+                arr = str(message.content).split()
+                prev = settings.find_one({"type":"prev", "name":str(message.author)})
+                if prev is None:
+                    await message.channel.send("No previous submission found. Please type `-submit [problemName] [language]` to submit a submission.")
+                    return
 
-            settings.insert_one({"type":"access", "mode":arr[1], "name":str(message.author), "solved":solved, "penalty":penalties, "time-bonus":time_bonus, "start":contests.current_time(), "taken":0})
+                if perms(settings.find_one({"type":"problem", "name":prev['problem']}), str(message.author)):
+                    await message.channel.send("Judging Error: Problem not found. The problem may either be private or does not exist.")
+                    return
 
-            await message.channel.send("Successfully joined contest `" + arr[1] + "`! You have " + amt(cont['len']) + " to complete the contest. Good Luck!\n")
-            await asyncio.sleep(1)
-            judging.get_file(storage_client, "ContestInstructions/" + arr[1] + ".txt", "ContestInstructions.txt")
-            f = open("ContestInstructions.txt", "r")
-            await message.channel.send("```\n" + f.read() + "\n```")
+                language = None
+                if len(arr) < 2:
+                    settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":prev['lang'], "used":False})
+                    language = prev['lang']
+                else:
+                    lang = settings.find_one({"type":"lang", "name":arr[1]})
+                    if lang is None:
+                        await message.channel.send("Judging Error: Language not Supported. Type `-langs` for a list of supported languages.")
+                        return
+                    settings.insert_one({"type":"req", "user":str(message.author), "problem":prev['problem'], "lang":arr[1], "used":False})
+                    language = arr[1]
+                await message.channel.send("Submission request received from `" + str(message.author) + "` for problem `" + prev['problem'] + "` in `" + language + "`.\nSend your source code either as an attachment or a message surrounded by backticks (`).")
+            elif str(message.content).split()[0].startswith("-lang"):
+                judging.get_file(storage_client, "Languages.txt", "Languages.txt")
+                f = open("Languages.txt", "r")
+                msg = f.read()
+                await message.channel.send(msg + "\nTo see exact execution commands, visit <https://dboj.jimmyliu.dev/>")
+            elif str(message.content).startswith("-error"):
+                f = open("errors.txt", "r")
+                await message.channel.send("```\n" + f.read(5000) + "\n```")
+            elif str(message.content).split()[0] == "-open":
+                # perm = settings.find_one({"type":"access", "name":str(message.author)})
+                prob = settings.find_one({"type":"problem", "name":str(message.content).split()[1].lower()})
 
-            notif = client.get_channel(858365776385277972)
-            await notif.send("<@627317639550861335> User `" + str(message.author) + "` joined contest `" + arr[1] + "`!")
+                if prob is None or perms(prob, str(message.author)):
+                    await message.channel.send("Error: Problem not found")
+                    return
 
-        elif str(message.content).startswith("-profile"):
-            arr = str(message.content).split()
-            if len(arr) == 1:
-                await message.channel.send(profile(str(message.author)))
-            else:
-                await message.channel.send(profile(str(message.content)[9:]))
-        elif str(message.content).startswith("-rank"):
-            arr = str(message.content).split()
-            if len(arr) < 2:
-                await message.channel.send("Incorrect formatting for `-rank` command. Please type `-rank [contestCode]` for the scoreboard")
-            else:
-                await message.channel.send(getScoreboard(arr[1]))
-        elif str(message.content).startswith("-rem"):
-            arr = str(message.content).split()
-            if len(arr) == 1:
-                await message.channel.send(remaining(str(message.author)))
-            else:
-                await message.channel.send(remaining(str(message.content)[5:]))
-        elif str(message.content).startswith("-up"):
-            m = "Upcoming contests:\n```"
-            f = False
-            for x in settings.find({"type":"contest"}):
-                if contests.compString(x['end'], contests.current_time()):
-                    m += "Contest " + x['name'] + " starts at " + x['start'] + " and ends at " + x['end'] + "\n"
-                    f = True
-            if not f:
-                m += "No upcoming contests\n"
-            m += "```"
-            await message.channel.send(m)
-        elif str(message.content).startswith("-console"):
-            if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
-                await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
-                return
-            output = open("console.out", "w")
-            tm = float(str(message.content).split()[1])
-            console = subprocess.Popen(str(message.content)[(str(message.content).find("$")+1):], stdout=output, preexec_fn = judging.limit_virtual_memory, shell=True)
-            await message.channel.send("Console started. Running command `" + str(message.content)[(str(message.content).find("$")+1):] + "` for " + str(tm) + " second(s).")
-            
-            try:
-                console.wait(timeout = tm)
-            except subprocess.TimeoutExpired:
-                console.terminate()
+                try:
+                    judging.get_file(storage_client, "ProblemStatements/" + prob['name'] + ".txt", "ProblemStatement.txt")
+                    ps = open("ProblemStatement.txt", "r")
+                    st = ps.read()
+                    await message.channel.send(st)
+                except Exception as e:
+                    await message.channel.send("An error occured while retrieving the problem statement:\n```" + str(e) + "\n```")
+            elif str(message.content).split()[0] == "-reset":
+                if str(message.author) != "jiminycricket#2701":
+                    await message.channel.send("Sorry, you do not have authorized access to this command.")
+                    return
 
-            output.flush()
-            output.close()
+                settings.update_many({"type":"judge", "status":1}, {"$set":{"status":0}})
+                
+                await message.channel.send("All servers' statuses are now set to available")
+            elif str(message.content).startswith("-add"):
+                await message.channel.send("To add your own problem to the judge, visit this site: <https://dboj.jimmyliu.dev/>")
+            elif str(message.content).startswith("-vote"):
+                await message.channel.send("Vote for the Judge discord bot!\nDiscord Bot List: <https://discordbotlist.com/bots/judge/upvote>\ntop.gg: <https://top.gg/bot/831963122448203776/vote>\n\nThanks for your support!")
+            elif str(message.content).startswith("-server"):
+                msg = "Discord bot online judge is currently in " + str(len(client.guilds)) + " servers!"
+                if str(message.channel) == "Direct Message with jiminycricket#2701":
+                    msg += "\n```\n"
+                    for x in client.guilds:
+                        msg += str(x) + "\n"
+                    await message.channel.send(msg + "```")
+                else:
+                    await message.channel.send(msg)
+            elif str(message.content).split()[0] == "-users":
+                if str(message.channel) != "Direct Message with jiminycricket#2701":
+                    return
+                f = open("users.txt", "r")
+                await message.channel.send("```\n" + f.read() + "```")
+                f.close()
+            elif str(message.content).startswith("-on"):
+                j = int(str(message.content).split()[1])
+                settings.update_one({"type":"judge", "num":j}, {"$set":{"status":0}})
+                
+                await message.channel.send("Judge " + str(j) + " is now online")
+            elif str(message.content).startswith("-off"):
+                j = int(str(message.content).split()[1])
+                settings.update_one({"type":"judge", "num":j}, {"$set":{"status":2}})
+                
+                await message.channel.send("Judge " + str(j) + " is now offline")
+            elif str(message.content) == "-status":
+                msg = getStatus()
+                await message.channel.send("**Current Judge Server Statuses:**\n```\n" + msg + "```")
+            elif str(message.content).startswith("-reset"):
+                settings.update_many({"type":"judge"}, {"$set":{"status":0}})
+                
+                await message.channel.send("All online judging servers successfully reset.\nType `-status` to see current judge statuses")
+            elif str(message.content).startswith("-invite"):
+                await message.channel.send("Invite the online judge discord bot to your own server with this link: \nhttps://discord.com/api/oauth2/authorize?client_id=831963122448203776&permissions=2148005952&scope=bot")
+            elif str(message.content).startswith("-cancel"):
+                settings.delete_many({"type":"req"})
+                await message.channel.send("Successfully cancelled all active submission requests")
+            elif str(message.content) == "-sigterm":
+                running = False # set terminate signal
+                await message.channel.send("Attempting to terminate processes.")
+            elif str(message.content) == "-sigkill":
+                await message.channel.send("Killing process signal using system exiter.")
+                exit(0) # Kill using system exit function
+            elif str(message.content) == "-restart":
+                running = True # Attempt to restart process
+                await message.channel.send("Restarting judge.")
+            elif str(message.content).startswith("-join"):
+                if not (str(message.channel).startswith("ticket-") or str(message.channel).endswith("-channel")):
+                    await message.channel.send("Please join contests in a private channel with the bot. Head to <#855868243855147030> to create one.")
+                    return
 
-            await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
-        elif str(message.content).startswith("-export"):
-            if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
-                await message.channel.send("Sorry, you do not have sufficient permissions to use this command. Please contact jiminycricket#2701 for problem setting permissions.")
-                return
-            if len(message.attachments) == 0:
-                await message.channel.send("Please attach a zip archive with the problem info along with the `-export` command")
-                return
-            
-            await message.channel.send("Uploading problem data...")
-            try:
-                msg = ProblemUpload.uploadProblem(settings, storage.Client(), str(message.attachments[0]), str(message.author))
-                await message.channel.send(msg)
-            except Exception as e:
-                await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
-            
-            os.system("rm -r problemdata; rm data.zip")
-        elif str(message.content) == "-register":
-            if settings.find_one({"type":"account", "name":str(message.author)}) is not None:
-                await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
-                return
-            if message.channel.type != "dm":
-                await message.reply("Login details have been DM'd to you.")
-                return
-            pswd = generatePassword()
-            settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
-            await message.author.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
+                arr = str(message.content).split()
+                if len(arr) != 2:
+                    await message.channel.send("Incorrect formatting for join command. Use `-join [contestCode]` to join a contest")
+                    return
+                cont = settings.find_one({"type":"contest", "name":arr[1].lower()})
+                if cont is None:
+                    await message.channel.send("Error: Contest not found")
+                    return
+                if (not contests.date(cont['start'], cont['end'], contests.current_time())):
+                    await message.channel.send("This contest is not currently active. Type `-up` to see upcoming contest times.")
+                    return
+                if not settings.find_one({"type":"access", "mode":arr[1], "name":str(message.author)}) is None:
+                    await message.channel.send("You already joined this contest!")
+                    return
+
+                solved = [0] * (cont['problems'] + 1)
+                penalties = [0] * (cont['problems'] + 1)
+                time_bonus = [0] * (cont['problems'] + 1)
+
+                settings.insert_one({"type":"access", "mode":arr[1], "name":str(message.author), "solved":solved, "penalty":penalties, "time-bonus":time_bonus, "start":contests.current_time(), "taken":0})
+
+                await message.channel.send("Successfully joined contest `" + arr[1] + "`! You have " + amt(cont['len']) + " to complete the contest. Good Luck!\n")
+                await asyncio.sleep(1)
+                judging.get_file(storage_client, "ContestInstructions/" + arr[1] + ".txt", "ContestInstructions.txt")
+                f = open("ContestInstructions.txt", "r")
+                await message.channel.send("```\n" + f.read() + "\n```")
+
+                notif = client.get_channel(858365776385277972)
+                await notif.send("<@627317639550861335> User `" + str(message.author) + "` joined contest `" + arr[1] + "`!")
+
+            elif str(message.content).startswith("-profile"):
+                arr = str(message.content).split()
+                if len(arr) == 1:
+                    await message.channel.send(profile(str(message.author)))
+                else:
+                    await message.channel.send(profile(str(message.content)[9:]))
+            elif str(message.content).startswith("-rank"):
+                arr = str(message.content).split()
+                if len(arr) < 2:
+                    await message.channel.send("Incorrect formatting for `-rank` command. Please type `-rank [contestCode]` for the scoreboard")
+                else:
+                    await message.channel.send(getScoreboard(arr[1]))
+            elif str(message.content).startswith("-rem"):
+                arr = str(message.content).split()
+                if len(arr) == 1:
+                    await message.channel.send(remaining(str(message.author)))
+                else:
+                    await message.channel.send(remaining(str(message.content)[5:]))
+            elif str(message.content).startswith("-up"):
+                m = "Upcoming contests:\n```"
+                f = False
+                for x in settings.find({"type":"contest"}):
+                    if contests.compString(x['end'], contests.current_time()):
+                        m += "Contest " + x['name'] + " starts at " + x['start'] + " and ends at " + x['end'] + "\n"
+                        f = True
+                if not f:
+                    m += "No upcoming contests\n"
+                m += "```"
+                await message.channel.send(m)
+            elif str(message.content).startswith("-console"):
+                if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
+                    await message.channel.send("Sorry, you do not have sufficient permissions to use this command.")
+                    return
+                output = open("console.out", "w")
+                tm = float(str(message.content).split()[1])
+                console = subprocess.Popen(str(message.content)[(str(message.content).find("$")+1):], stdout=output, preexec_fn = judging.limit_virtual_memory, shell=True)
+                await message.channel.send("Console started. Running command `" + str(message.content)[(str(message.content).find("$")+1):] + "` for " + str(tm) + " second(s).")
+                
+                try:
+                    console.wait(timeout = tm)
+                except subprocess.TimeoutExpired:
+                    console.terminate()
+
+                output.flush()
+                output.close()
+
+                await message.channel.send("Console finished. Output shown below:\n```" + open("console.out", "r").read(2000) + "\n```")
+            elif str(message.content).startswith("-export"):
+                if settings.find_one({"type":"access", "mode":"admin", "name":"jiminycricket#2701"}) is None:
+                    await message.channel.send("Sorry, you do not have sufficient permissions to use this command. Please contact jiminycricket#2701 for problem setting permissions.")
+                    return
+                if len(message.attachments) == 0:
+                    await message.channel.send("Please attach a zip archive with the problem info along with the `-export` command")
+                    return
+                
+                await message.channel.send("Uploading problem data...")
+                try:
+                    msg = ProblemUpload.uploadProblem(settings, storage.Client(), str(message.attachments[0]), str(message.author))
+                    await message.channel.send(msg)
+                except Exception as e:
+                    await message.channel.send("Error occurred while uploading problem data:\n```" + str(e) + "\n```")
+                
+                os.system("rm -r problemdata; rm data.zip")
+            elif str(message.content) == "-register":
+                if settings.find_one({"type":"account", "name":str(message.author)}) is not None:
+                    await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
+                    return
+                if message.channel.type != "dm":
+                    await message.reply("Login details have been DM'd to you.")
+                    return
+                pswd = generatePassword()
+                settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
+                await message.author.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
+    except Exception as e:
+        await message.channel.send("Fatal error occurred:\n```\n" + str(e) + "\n```")
             
 client.run(os.getenv("TOKEN"))
