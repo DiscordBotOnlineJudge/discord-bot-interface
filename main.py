@@ -285,8 +285,9 @@ async def handleSubmission(message):
             author = str(message.author)
         else:
             req = settings.find_one({"type":"queued"})
-            channel = client.get_channel(req['channel'])
-            author = req['user']
+            if not req is None:
+                channel = client.get_channel(req['channel'])
+                author = req['user']
 
         if not str(message.content).startswith("-") and (not req is None):
             try:
@@ -336,8 +337,6 @@ async def handleSubmission(message):
                 settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
                 settings.delete_one({"_id":req['_id']})
 
-                
-
                 settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
                 await channel.send("Now judging your program. See execution results below.")
 
@@ -378,8 +377,6 @@ async def handleSubmission(message):
                 print(exc_type, fname, exc_tb.tb_lineno)
 
             settings.update_one({"_id":judges['_id']}, {"$set":{"status":0}})
-            
-
             first = False
         else:
             break
