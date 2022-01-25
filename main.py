@@ -675,6 +675,6 @@ async def on_message(message):
         print(exc_type, fname, exc_tb.tb_lineno)
         print(e)
         
-        await message.channel.send("Fatal error occurred:\n```\n" + str(e) + " " + str(exc_type) + " " + fname + " " + exc_tb.tb_lineno + "\n```")
+        await message.channel.send("Fatal error occurred:\n```\n" + str(e) + " " + str(exc_type) + " " + str(fname) + " " + str(exc_tb.tb_lineno) + "\n```")
             
 client.run(os.getenv("TOKEN"))
