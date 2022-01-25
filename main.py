@@ -660,14 +660,14 @@ async def on_message(message):
             
             os.system("rm -r problemdata; rm data.zip")
         elif str(message.content) == "-register":
-            if not str(message.channel).startswith("Direct Message with"):
-                await message.channel.send("Please use `-register` in a direct message with the bot.")
-                return
             if settings.find_one({"type":"account", "name":str(message.author)}) is not None:
                 await message.channel.send("An account under your username has already been registered. If you forgot your password, please contact me (`jiminycricket#2701`).")
                 return
+            if message.channel.type != "dm":
+                await message.reply("Login details have been DM'd to you.")
+                return
             pswd = generatePassword()
             settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
-            await message.channel.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
+            await message.author.send("Your account has been successfully created! Your password is `" + pswd + "`. Please don't share it with anyone.")
             
 client.run(os.getenv("TOKEN"))
