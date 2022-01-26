@@ -68,16 +68,19 @@ def uploadProblem(settings, storage_client, url, author):
         cases.flush()
         cases.close()
         upload_blob(storage_client, "problemdata/cases.txt", "TestData/" + params['name'] + "/cases.txt")
-
-        d = {}
-        d['time-limit'] = params['time-limit']
-        d['memory-limit'] = params['memory-limit']
-        yaml.safe_dump(d, open("problemdata/resources.yaml", "w"))
-        upload_blob(storage_client, "problemdata/resources.yaml", "TestData/" + params['name'] + "/resources.yaml")
     except Exception as e:
         print(str(e))
         return "Error with uploading cases"
 
+    d = {}
+    d['time-limit'] = params['time-limit']
+    d['memory-limit'] = params['memory-limit']
+    for x in d['memory-limit']:
+        if d[x] > 786432:
+            raise Exception("Memory limit for " + x + " is too high. The maximum is 768 MB.")
+    yaml.safe_dump(d, open("problemdata/resources.yaml", "w"))
+    upload_blob(storage_client, "problemdata/resources.yaml", "TestData/" + params['name'] + "/resources.yaml")
+    
     upload_blob(storage_client, "problemdata/description.md", "ProblemStatements/" + params['name'] + ".txt")
     
     try:
