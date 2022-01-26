@@ -65,12 +65,15 @@ def uploadProblem(settings, storage_client, url, author):
         for x in params['points']:
             cases.write(str(x) + " ")
         cases.write("\n")
-        for x in params['timelimit']:
-            cases.write(str(x) + " ")
-        cases.write("\n")
         cases.flush()
         cases.close()
         upload_blob(storage_client, "problemdata/cases.txt", "TestData/" + params['name'] + "/cases.txt")
+
+        d = {}
+        d['time-limit'] = params['time-limit']
+        d['memory-limit'] = params['memory-limit']
+        yaml.safe_dump(d, open("problemdata/resources.yaml", "w"))
+        upload_blob(storage_client, "problemdata/resources.yaml", "TestData/" + params['name'] + "/resources.yaml")
     except Exception as e:
         print(str(e))
         return "Error with uploading cases"

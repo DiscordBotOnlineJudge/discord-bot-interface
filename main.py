@@ -302,8 +302,6 @@ async def handleSubmission(message):
 
                 problm = settings.find_one({"type":"problem", "name":problem})
 
-                
-
                 cleaned = ""
                 attachments = False
 
