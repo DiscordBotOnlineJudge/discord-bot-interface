@@ -237,10 +237,10 @@ async def sendLiveScoreboards():
     for x in range(len(current_contest)):
         scb[x] = await sbc.send(getScoreboard(current_contest[x]))
 
-def runSubmission(judges, username, cleaned, lang, problm, attachments, return_dict):
+def runSubmission(judges, username, cleaned, lang, problm, attachments, return_dict, sub_id):
     with grpc.insecure_channel(judges['ip'] + ":" + str(judges['port'])) as channel:
         stub = judge_pb2_grpc.JudgeServiceStub(channel)
-        response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments))
+        response = stub.judge(judge_pb2.SubmissionRequest(username = username, source = cleaned, lang = lang, problem = problm['name'], attachment = attachments, sub_id=sub_id))
         finalscore = response.finalScore
         return_dict['finalscore'] = finalscore
 
@@ -335,19 +335,24 @@ async def handleSubmission(message):
                 settings.update_one({"_id":judges['_id']}, {"$set":{"status":1}})
                 settings.delete_one({"_id":req['_id']})
 
-                settings.insert_one({"type":"use", "author":str(author), "message":cleaned})
+                sub_cnt = settings.find_one({"type":"sub_cnt"})['cnt']
+                settings.update_one({"type":"sub_cnt"}, {"$inc":{"cnt":1}})
+
+                settings.insert_one({"type":"submission", "author":username, "message":cleaned, "id":sub_cnt, "output":""})
+                sub = settings.find_one({"type":"submission", "id":sub_cnt})
+
                 await channel.send("Now judging your program. See execution results below.")
 
                 manager = Manager()
                 return_dict = manager.dict()
-                rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, return_dict,))
+                rpc = Process(target = runSubmission, args = (judges, username, cleaned, lang, problm, attachments, return_dict, sub_cnt,))
                 rpc.start()
 
                 msgContent = "```Waiting for response from Judge " + str(avail) + "```"
                 curmsg = await channel.send(msgContent)
 
                 while rpc.is_alive():
-                    newcontent = settings.find_one({"type":"judge", "num":avail})['output']
+                    newcontent = settings.find_one({"_id":sub["_id"]})['output']
                     if newcontent != msgContent and len(newcontent) > 0:
                         msgContent = newcontent
                         try:
