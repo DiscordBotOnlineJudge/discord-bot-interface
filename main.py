@@ -363,7 +363,7 @@ async def handleSubmission(message):
 
                 try:
                     finalscore = return_dict['finalscore']
-                    await curmsg.edit(content = settings.find_one({"type":"judge", "num":avail})['output'])
+                    await curmsg.edit(content = settings.find_one({"_id":sub["_id"]})['output'])
                     if finalscore == 100:
                         addToProfile(author, problem)
                     if len(problm['contest']) > 0 and finalscore >= 0:
