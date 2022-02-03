@@ -485,7 +485,7 @@ async def on_message(message):
                 judging.get_file(storage_client, "Languages.txt", "Languages.txt")
                 f = open("Languages.txt", "r")
                 msg = f.read()
-                await message.channel.send(msg + "\nTo see exact execution commands, visit <https://dboj.jimmyliu.dev/>")
+                await message.channel.send(msg + "\nTo see exact execution commands, visit <https://dboj.jimmyliu.dev/languages>")
             elif str(message.content).startswith("-error"):
                 f = open("errors.txt", "r")
                 await message.channel.send("```\n" + f.read(5000) + "\n```")
