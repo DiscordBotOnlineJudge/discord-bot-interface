@@ -364,10 +364,6 @@ async def handleSubmission(message):
                 try:
                     finalscore = return_dict['finalscore']
                     await curmsg.edit(content = settings.find_one({"_id":sub["_id"]})['output'])
-                    if finalscore == 100:
-                        addToProfile(author, problem)
-                    if len(problm['contest']) > 0 and finalscore >= 0:
-                        await updateScore(problm['contest'], problem, author, finalscore, ct)
                 except Exception as e:
                     await channel.send("Judging error: Fatal error occured on Judge Server " + str(avail) + " while grading solution")
                     print(e)
@@ -667,8 +663,14 @@ async def on_message(message):
                 if message.channel.type != discord.ChannelType.private:
                     await message.reply("Login details have been DM'd to you.")
                 pswd = generatePassword()
-                settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd)})
-                await message.author.send("Your account has been successfully created! Your password is ||`" + pswd + "`||. Please don't share it with anyone.")
+                try:
+                    await message.author.send("Your account has been successfully created! Your password is ||`" + pswd + "`||. Please don't share it with anyone.")
+                    id_cnt = settings.find_one({"type":"id_cnt"})['cnt']
+                    settings.update_one({"type":"id_cnt"}, {"$inc":{"cnt":1}})
+                    settings.insert_one({"type":"account", "name":str(message.author), "pswd":hashCode(pswd), "id":id_cnt})
+                    
+                except:
+                    await message.channel.send("Error: Please temporarily enable non-friend direct messages from this server")
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
