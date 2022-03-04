@@ -338,7 +338,7 @@ async def handleSubmission(message):
                 sub_cnt = settings.find_one({"type":"sub_cnt"})['cnt']
                 settings.update_one({"type":"sub_cnt"}, {"$inc":{"cnt":1}})
 
-                settings.insert_one({"type":"submission", "author":username, "message":cleaned, "id":sub_cnt, "output":""})
+                settings.insert_one({"type":"submission", "problem":problem, "author":username, "lang":lang, "message":cleaned, "id":sub_cnt, "output":""})
                 sub = settings.find_one({"type":"submission", "id":sub_cnt})
 
                 await channel.send("Now judging your program. See execution results below.")
